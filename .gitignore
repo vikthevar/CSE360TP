@@ -1,0 +1,22 @@
+# Java
+*.class
+*.jar
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# JavaFX / build
+bin/
+out/
+target/
+
+# OS junk
+.DS_Store
+
+# H2 Database (DO NOT COMMIT!!!!!!!)
+*.mv.db
+*.trace.db
+*.mv
+*.trace
