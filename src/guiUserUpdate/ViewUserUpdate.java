@@ -1,7 +1,7 @@
 package guiUserUpdate;
 
 import java.util.Optional;
-
+import emailAddressRecognizer.EmailAddressRecognizer;
 import database.Database;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -312,18 +312,56 @@ public class ViewUserUpdate {
         	else label_CurrentPreferredFirstName.setText(newName);
      		});
         
-        // Email Address
+        // Email Address (Updated to not process requests until FSM specs are met)
         setupLabelUI(label_EmailAddress, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 400);
         setupLabelUI(label_CurrentEmailAddress, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 400);
         setupButtonUI(button_UpdateEmailAddress, "Dialog", 18, 275, Pos.CENTER, 500, 393);
-        button_UpdateEmailAddress.setOnAction((_) -> {result = dialogUpdateEmailAddresss.showAndWait();
-    		result.ifPresent(_ -> theDatabase.updateEmailAddress(theUser.getUserName(), result.get()));
-    		theDatabase.getUserAccountDetails(theUser.getUserName());
-    		String newEmail = theDatabase.getCurrentEmailAddress();
-           	theUser.setEmailAddress(newEmail);
-        	if (newEmail == null || newEmail.length() < 1)label_CurrentEmailAddress.setText("<none>");
-        	else label_CurrentEmailAddress.setText(newEmail);
- 			});
+        
+        // Updated so that popup does not close on invalid email
+        // Processed to database + UI only on valid input
+        button_UpdateEmailAddress.setOnAction((_) -> {
+
+            while (true) {
+                result = dialogUpdateEmailAddresss.showAndWait();
+
+                // If User hits Cancel
+                if (!result.isPresent()) {
+                    return;
+                }
+                
+                // Trim input
+                String email = result.get().trim();
+
+                // FSM validation
+                String error = emailAddressRecognizer.EmailAddressRecognizer
+                        .checkEmailAddress(email);
+
+                if (!error.isEmpty()) {
+                    // Show error and re-prompt
+                    dialogUpdateEmailAddresss.setHeaderText("Invalid Email Address");
+                    dialogUpdateEmailAddresss.setContentText(error.trim());
+                    continue;   // dialog reopens
+                }
+
+                // VALID case
+                theDatabase.updateEmailAddress(theUser.getUserName(), email);
+                theDatabase.getUserAccountDetails(theUser.getUserName());
+
+                String newEmail = theDatabase.getCurrentEmailAddress();
+                theUser.setEmailAddress(newEmail);
+
+                if (newEmail == null || newEmail.length() < 1)
+                    label_CurrentEmailAddress.setText("<none>");
+                else
+                    label_CurrentEmailAddress.setText(newEmail);
+
+                // Reset text for next use
+                dialogUpdateEmailAddresss.setHeaderText("Update Email Address");
+                dialogUpdateEmailAddresss.setContentText("");
+
+                return;
+            }
+        });
         
         // Set up the button to proceed to this user's home page
         setupButtonUI(button_ProceedToUserHomePage, "Dialog", 18, 300, 
