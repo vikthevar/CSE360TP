@@ -1,6 +1,7 @@
 package guiAdminHome;
 
 import database.Database;
+import emailAddressRecognizer.EmailAddressRecognizer;
 
 /*******
  * <p> Title: GUIAdminHomePage Class. </p>
@@ -178,13 +179,18 @@ public class ControllerAdminHome {
 	 * @param emailAddress	This String holds what is expected to be an email address
 	 */
 	protected static boolean invalidEmailAddress(String emailAddress) {
-		if (emailAddress.length() == 0) {
-			ViewAdminHome.alertEmailError.setContentText(
-					"Correct the email address and try again.");
-			ViewAdminHome.alertEmailError.showAndWait();
-			return true;
-		}
-		return false;
+		//Trim input
+	    emailAddress = (emailAddress == null) ? "" : emailAddress.trim();
+
+	    // FSM email validation
+	    String emailError = EmailAddressRecognizer.checkEmailAddress(emailAddress);
+
+	    if (!emailError.isEmpty()) {
+	        ViewAdminHome.alertEmailError.setContentText(emailError.trim());
+	        ViewAdminHome.alertEmailError.showAndWait();
+	        return true;
+	    }
+	    return false;
 	}
 	
 	/**********
