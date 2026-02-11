@@ -35,7 +35,22 @@ public class Model {
 	 * with respect to those requirements.  The results of that evaluation are display via the View
 	 * to the user and via the console.</p>
 	 */
-
+	
+	/*
+	 * Lines 41-105 & lines 147-183 have been commented out
+	 * The View-related UI update logic has been commented out because this TP1
+	 * implementation does not use the original PasswordEvaluation testbed View.
+	 * 
+	 * In this project, the Controller is responsible for updating the GUI components,
+	 * and the Model is used strictly for password validation logic (evaluatePassword).
+	 * 
+	 * Keeping UI references (View.*) inside the Model creates dependency issues
+	 * and compilation errors, so the UI update code was removed to maintain
+	 * proper separation of concerns and avoid build errors.
+	 */
+	
+	
+	/*
 	protected static void updatePassword() {
 		View.resetAssessments();						// Reset the assessment flags to the
 		String password = View.text_Password.getText();	// initial state and fetch the input
@@ -99,6 +114,7 @@ public class Model {
 			} 
 		}
 	}
+	*/
 	
 	/*-********************************************************************************************
 	 * 
@@ -130,7 +146,7 @@ public class Model {
 	 * terminal.
 	 * 
 	 */
-
+	
 	private static void displayInputState() {
 		// Display the entire input line
 		System.out.println(inputLine);
@@ -145,7 +161,7 @@ public class Model {
 	 * the text to tell the user of this fact and changes the text color from red to green.
 	 * 
 	 */
-	
+	/*
 	private static void updateFlags() {
 		if (foundUpperCase) {
 			View.label_UpperCase.setText("At least one upper case letter - Satisfied");
@@ -176,7 +192,7 @@ public class Model {
 			View.label_TooLong.setTextFill(Color.GREEN);
 		}
 	}
-	
+	*/
 
 	/**********
 	 * <p> Title: evaluatePassword - Public Method </p>
@@ -268,22 +284,22 @@ public class Model {
 		//updated error messages to be more descriptive
 		String errMessage = "";
 		if (!foundUpperCase)
-			errMessage += "Must contain at least one upper case letter\n";
+			errMessage += "Password must contain at least one upper case letter\n";
 		
 		if (!foundLowerCase)
-			errMessage += "Must contain at least one lower case letter\n";
+			errMessage += "Password must contain at least one lower case letter\n";
 		
 		if (!foundNumericDigit)
-			errMessage += "Must contain at least one numeric digit\n";
+			errMessage += "Password must contain at least one numeric digit\n";
 			
 		if (!foundSpecialChar)
-			errMessage += "Must contain at least one special character\n";
+			errMessage += "Password must contain at least one special character\n";
 			
 		if (!foundLongEnough)
-			errMessage += "Must be at least 8 characters long\n";
+			errMessage += "Password must be at least 8 characters long\n";
 		
 		if(foundTooLong)
-			errMessage += "Must be less than 64 characters long\n";
+			errMessage += "Password must be less than 64 characters long\n";
 		
 		if (errMessage == "")
 			return "";
