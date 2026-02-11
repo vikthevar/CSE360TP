@@ -82,6 +82,18 @@ public class ControllerNewAccount {
 		    return;
 		}
 		
+		//Validate the password using the FSM recognizer before using it
+		String passwordError = passwordEvaluation.Model.evaluatePassword(password);
+		
+		// Provide detailed FSM feedback and halt if invalid
+		if (!passwordError.isEmpty()) {
+		    ViewNewAccount.alertUsernamePasswordError.setTitle("Invalid Password");
+		    ViewNewAccount.alertUsernamePasswordError.setHeaderText("Password does not meet requirements.");
+		    ViewNewAccount.alertUsernamePasswordError.setContentText(passwordError.trim());
+		    ViewNewAccount.alertUsernamePasswordError.showAndWait();
+		    return;
+		}
+		
 		// Display key information to the log
 		System.out.println("** Account for Username: " + username + "; theInvitationCode: "+
 				ViewNewAccount.theInvitationCode + "; email address: " + 

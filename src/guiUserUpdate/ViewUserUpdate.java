@@ -87,6 +87,7 @@ public class ViewUserUpdate {
 	private static Button button_UpdateLastName = new Button("Update Last Name");
 	private static Button button_UpdatePreferredFirstName = new Button("Update Preferred First Name");
 	private static Button button_UpdateEmailAddress = new Button("Update Email Address");
+	
 
 	// This button enables the user to finish working on this page and proceed to the user's home
 	// page determined by the user's role at the time of log in.
@@ -101,6 +102,7 @@ public class ViewUserUpdate {
 	private static TextInputDialog dialogUpdateLastName;
 	private static TextInputDialog dialogUpdatePreferredFirstName;
 	private static TextInputDialog dialogUpdateEmailAddresss;
+	private static TextInputDialog dialogUpdatePassword; //added code for validating updated password
 	
 	// These attributes are used to configure the page and populate it with this user's information
 	private static ViewUserUpdate theView;	// Used to determine if instantiation of the class
@@ -220,6 +222,7 @@ public class ViewUserUpdate {
 		dialogUpdateLastName = new TextInputDialog("");
 		dialogUpdatePreferredFirstName = new TextInputDialog("");
 		dialogUpdateEmailAddresss = new TextInputDialog("");
+		dialogUpdatePassword = new TextInputDialog("");
 
 		// Establish the label for each of the dialogs.
 		dialogUpdateFirstName.setTitle("Update First Name");
@@ -236,6 +239,9 @@ public class ViewUserUpdate {
 		
 		dialogUpdateEmailAddresss.setTitle("Update Email Address");
 		dialogUpdateEmailAddresss.setHeaderText("Update your Email Address");
+		
+		dialogUpdatePassword.setTitle("Update Password"); // code to handle new dialogue pop-up for password update
+		dialogUpdatePassword.setHeaderText("Update your Password");
 
 		// Label theScene with the name of the startup screen, centered at the top of the pane
 		setupLabelUI(label_ApplicationTitle, "Arial", 28, width, Pos.CENTER, 0, 5);
@@ -255,6 +261,38 @@ public class ViewUserUpdate {
         setupLabelUI(label_Password, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 150);
         setupLabelUI(label_CurrentPassword, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 150);
         setupButtonUI(button_UpdatePassword, "Dialog", 18, 275, Pos.CENTER, 500, 143);
+        button_UpdatePassword.setOnAction((_) -> {
+        while (true) {
+        	result = dialogUpdatePassword.showAndWait();
+        	
+        	if(!result.isPresent()) {
+        		return;
+        	}
+        	String newPassword = result.get();
+            String error = passwordEvaluation.Model.evaluatePassword(newPassword);
+            
+            if (!error.isEmpty()) {
+                // Show error and re-prompt
+                dialogUpdatePassword.setHeaderText("Invalid Password");
+                dialogUpdatePassword.setContentText(error.trim());
+                continue;   // dialog reopens
+            }
+            
+            theDatabase.updatePassword(theUser.getUserName(), newPassword);
+            theDatabase.getUserAccountDetails(theUser.getUserName());
+            
+            String updatedPassword = theDatabase.getCurrentPassword();
+            theUser.setPassword(updatedPassword);
+            label_CurrentPassword.setText(updatedPassword);
+            
+            // Reset dialog for next use
+            dialogUpdatePassword.setHeaderText("Enter your new password");
+            dialogUpdatePassword.setContentText("");
+
+            return;
+        }
+        });
+        
         
         // First Name
         setupLabelUI(label_FirstName, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 200);
