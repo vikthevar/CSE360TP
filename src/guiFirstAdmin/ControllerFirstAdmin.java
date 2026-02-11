@@ -114,7 +114,14 @@ public class ControllerFirstAdmin {
 		    ViewFirstAdmin.label_PasswordsDoNotMatch.setText(userNameError.trim());
 		    return;
 		}
+		//validate password before using it for first admin set up
+		String passwordError = passwordEvaluation.Model.evaluatePassword(adminPassword1);
 		
+		// Provide detailed FSM feedback and halt if invalid
+		if (!passwordError.isEmpty()) {
+		    ViewFirstAdmin.label_PasswordsDoNotMatch.setText(passwordError.trim());
+		    return;
+		}
 		
 		// Make sure the two passwords are the same
 		if (adminPassword1.compareTo(adminPassword2) == 0) {
