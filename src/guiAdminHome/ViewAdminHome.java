@@ -253,8 +253,8 @@ public class ViewAdminHome {
 			{ControllerAdminHome.manageInvitations(); });
 		
 		// This is to get the username from the admin to reset a password
-		setupLabelUI(label_TargetUsername, "Arial", 16, 200, Pos.BASELINE_LEFT, 300, 325);
-		setupTextUI(text_TargetUsername, "Arial", 16, 200, Pos.BASELINE_LEFT, 450, 320, true);
+		//setupLabelUI(label_TargetUsername, "Arial", 16, 200, Pos.BASELINE_LEFT, 300, 325);
+		//setupTextUI(text_TargetUsername, "Arial", 16, 200, Pos.BASELINE_LEFT, 450, 320, true);
 
 	
 		setupButtonUI(button_SetOnetimePassword, "Dialog", 16, 250, Pos.CENTER, 20, 320);
