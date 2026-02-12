@@ -131,51 +131,59 @@ public class ControllerAddRemoveRoles {
 		if (!theDatabase.getCurrentAdminRole())
 			ViewAddRemoveRoles.addList.add("Admin");
 		if (!theDatabase.getCurrentNewRole1())
-			ViewAddRemoveRoles.addList.add("Role1");
+			ViewAddRemoveRoles.addList.add("Student");
 		if (!theDatabase.getCurrentNewRole2())
-			ViewAddRemoveRoles.addList.add("Role2");
+			ViewAddRemoveRoles.addList.add("Staff");
 
 		// Create the list of roles that could be removed for the currently selected user (e.g., Do
 		// not show a role to remove that the user does not have!)
 		ViewAddRemoveRoles.removeList.clear();
 		ViewAddRemoveRoles.removeList.add("<Select a role>");
-		if (theDatabase.getCurrentAdminRole())
-			ViewAddRemoveRoles.removeList.add("Admin");
 		if (theDatabase.getCurrentNewRole1())
-			ViewAddRemoveRoles.removeList.add("Role1");
+			ViewAddRemoveRoles.removeList.add("Student");
 		if (theDatabase.getCurrentNewRole2())
-			ViewAddRemoveRoles.removeList.add("Role2");
+			ViewAddRemoveRoles.removeList.add("Staff");
 		
 		// Create the list or roles that the user currently has with proper use of a comma between
 		// items
 		boolean notTheFirst = false;
 		String theCurrentRoles = "";
+		String logicRoles = "";
 		
 		// Admin role - It can only be at the head of a list
 		if (theDatabase.getCurrentAdminRole()) {
 			theCurrentRoles += "Admin";
+			logicRoles += "Admin";
 			notTheFirst = true;
 		}
 		
 		// Roles 1 - It could be at the head of the list or later in the list
 		if (theDatabase.getCurrentNewRole1()) {
-			if (notTheFirst)
-				theCurrentRoles += ", Role1"; 
+			if (notTheFirst) {
+				theCurrentRoles += ", Student";
+				logicRoles += ", Role1";
+			}
 			else {
-				theCurrentRoles += "Role1";
+				theCurrentRoles += "Student";
+				logicRoles += "Role1";
 				notTheFirst = true;
 			}
 		}
+		
 
 		// Roles 2 - It could be at the head of the list or later in the list
 		if (theDatabase.getCurrentNewRole2()) {
-			if (notTheFirst)
-				theCurrentRoles += ", Role2"; 
+			if (notTheFirst) {
+				theCurrentRoles += ", Staff"; 
+				logicRoles += ", Role2";
+			}
 			else {
-				theCurrentRoles += "Role2";
+				theCurrentRoles += "Staff";
+				logicRoles += "Role2";
 				notTheFirst = true;
 			}
 		}
+		
 
 		// Given the above actions, populate the related widgets with the new values
 		ViewAddRemoveRoles.label_CurrentRoles.setText("This user's current roles: " + 
@@ -212,6 +220,11 @@ public class ControllerAddRemoveRoles {
 		ViewAddRemoveRoles.theAddRole =
 				(String) ViewAddRemoveRoles.combobox_SelectRoleToAdd.getValue();
 		
+		if ((ViewAddRemoveRoles.theAddRole).equals("Student")) {
+			ViewAddRemoveRoles.theAddRole = "Role1";
+		} else if ((ViewAddRemoveRoles.theAddRole).equals("Staff")) {
+			ViewAddRemoveRoles.theAddRole = "Role2";
+		}
 		// If the selection is the list header (e.g., "<Select a role>") don't do anything
 		if (ViewAddRemoveRoles.theAddRole.compareTo("<Select a role>") != 0) {
 			
@@ -240,6 +253,11 @@ public class ControllerAddRemoveRoles {
 		// Determine which item in the ComboBox list was selected
 		ViewAddRemoveRoles.theRemoveRole = (String) ViewAddRemoveRoles.
 				combobox_SelectRoleToRemove.getValue();
+		if ((ViewAddRemoveRoles.theRemoveRole).equals("Student")) {
+			ViewAddRemoveRoles.theRemoveRole = "Role1";
+		} else if ((ViewAddRemoveRoles.theRemoveRole).equals("Staff")) {
+			ViewAddRemoveRoles.theRemoveRole = "Role2";
+		}
 		
 		// If the selection is the list header (e.g., "<Select a role>") don't do anything
 		if (ViewAddRemoveRoles.theRemoveRole.compareTo("<Select a role>") != 0) {
