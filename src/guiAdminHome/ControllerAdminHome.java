@@ -1,6 +1,10 @@
 package guiAdminHome;
 
 import database.Database;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.VBox;
 import emailAddressRecognizer.EmailAddressRecognizer;
 import java.util.List;
 import javafx.scene.control.Alert;
@@ -102,12 +106,74 @@ public class ControllerAdminHome {
 	 */
 	protected static void manageInvitations () {
 		
+	    List<String> emails = theDatabase.getInvitationEmailList();
+
+	    StringBuilder invitationList = new StringBuilder();
+
+	    if (emails.isEmpty()) {
+	        invitationList.append("No pending invitations.\n");
+	    } else {
+	        invitationList.append("Pending invitation emails:\n\n");
+	        for (String email : emails) {
+	            invitationList.append("- ").append(email).append("\n");
+	        }
+	    }
+
+	    Dialog<String> dialog = new Dialog<>();
+	    dialog.setTitle("Manage Invitations");
+	    dialog.setHeaderText(invitationList.toString() + "\nEnter new invitation info:");
+
+	    ButtonType sendButton = new ButtonType("Send Invitation", ButtonBar.ButtonData.OK_DONE);
+	    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+	    dialog.getDialogPane().getButtonTypes().addAll(sendButton, cancelButton);
+
+	    TextField emailField = new TextField();
+	    emailField.setPromptText("email@example.com");
+
+	    ComboBox<String> roleBox = new ComboBox<>();
+	    roleBox.getItems().addAll("Admin", "Role1", "Role2");
+	    roleBox.getSelectionModel().selectFirst();
+
+	    VBox content = new VBox(10);
+	    content.getChildren().addAll(emailField, roleBox);
+
+	    dialog.getDialogPane().setContent(content);
+
+	    dialog.setResultConverter(button -> {
+	        if (button == sendButton) {
+	            return emailField.getText() + "|" + roleBox.getValue();
+	        }
+	        return null;
+	    });
+
+	    Optional<String> result = dialog.showAndWait();
+	    if (result.isEmpty()) return;
+
+	    String[] parts = result.get().split("\\|");
+	    String emailAddress = parts[0].trim();
+	    String selectedRole = parts[1];
+
+	    if (invalidEmailAddress(emailAddress)) return;
+
+	    if (theDatabase.emailaddressHasBeenUsed(emailAddress)) {
+	        ViewAdminHome.alertEmailError.setContentText(
+	                "An invitation has already been sent to this email address.");
+	        ViewAdminHome.alertEmailError.showAndWait();
+	        return;
+	    }
+
+	    String invitationCode = theDatabase.generateInvitationCode(emailAddress, selectedRole);
+
+	    String msg = "Code: " + invitationCode +
+	            " for role " + selectedRole +
+	            " was sent to: " + emailAddress;
+
+	    ViewAdminHome.alertEmailSent.setContentText(msg);
+	    ViewAdminHome.alertEmailSent.showAndWait();
+
+	    ViewAdminHome.label_NumberOfInvitations.setText(
+	            "Number of outstanding invitations: " + theDatabase.getNumberOfInvitations());
 		
-		System.out.println("\n*** WARNING ***: Manage Invitations Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("Manage Invitations Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("Manage Invitations Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.showAndWait();
 	}
 	
 	/**********
@@ -120,26 +186,52 @@ public class ControllerAdminHome {
 	 */
 	protected static void setOnetimePassword () {
 		
-		String username = ViewAdminHome.text_TargetUsername.getText().trim();
-				
-		if (username.isEmpty()) {
-			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
-			ViewAdminHome.alertNotImplemented.setHeaderText(null);
-			ViewAdminHome.alertNotImplemented.setContentText("Please Enter Username");
-			ViewAdminHome.alertNotImplemented.showAndWait();
+
+	    Dialog<String> dialog = new Dialog<>();
+	    dialog.setTitle("Set One-Time Password");
+	    dialog.setHeaderText("Enter the username:");
+
+	    ButtonType okButton = new ButtonType("Continue", ButtonBar.ButtonData.OK_DONE);
+	    ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+	    dialog.getDialogPane().getButtonTypes().addAll(okButton, cancelButton);
+
+	    TextField usernameField = new TextField();
+	    usernameField.setPromptText("Username");
+
+	    VBox content = new VBox(10);
+	    content.getChildren().add(usernameField);
+	    dialog.getDialogPane().setContent(content);
+
+	    dialog.setResultConverter(button -> {
+	        if (button == okButton) {
+	            return usernameField.getText();
+	        }
+	        return null;
+	    });
+
+	    Optional<String> result = dialog.showAndWait();
+	    if (result.isEmpty()) return;
+
+	    String username = result.get().trim();
+
+	    if (username.isEmpty()) {
+	        ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	        ViewAdminHome.alertNotImplemented.setContentText("Please enter a username.");
+	        ViewAdminHome.alertNotImplemented.showAndWait();
 	        return;
 	    }
-		
-		if (!theDatabase.doesUserExist(username)) {
-			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
-			ViewAdminHome.alertNotImplemented.setHeaderText(null);
-			ViewAdminHome.alertNotImplemented.setContentText("User does not exist");
-			ViewAdminHome.alertNotImplemented.showAndWait();
+
+	    if (!theDatabase.doesUserExist(username)) {
+	        ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	        ViewAdminHome.alertNotImplemented.setContentText("User does not exist.");
+	        ViewAdminHome.alertNotImplemented.showAndWait();
 	        return;
 	    }
-		
-		// Generates new Password
-		String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+
+
+	    String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 	    StringBuilder password = new StringBuilder();
 
 	    for (int i = 0; i < 8; i++) {
@@ -147,23 +239,26 @@ public class ControllerAdminHome {
 	        password.append(chars.charAt(index));
 	    }
 
-		String tempPassword = password.toString();
+	    String tempPassword = password.toString();
 
-		boolean success = theDatabase.setOneTimePassword(username, tempPassword);
+
+	    boolean success = theDatabase.setOneTimePassword(username, tempPassword);
 
 	    if (!success) {
-	    	ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
-			ViewAdminHome.alertNotImplemented.setHeaderText(null);
-			ViewAdminHome.alertNotImplemented.setContentText("falied to set one time password");
-			ViewAdminHome.alertNotImplemented.showAndWait();
+	        ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	        ViewAdminHome.alertNotImplemented.setContentText("Failed to set one-time password.");
+	        ViewAdminHome.alertNotImplemented.showAndWait();
 	        return;
 	    }
 
-	    ViewAdminHome.alertNotImplemented.setTitle("One-Time Password Created");
-		ViewAdminHome.alertNotImplemented.setHeaderText(null);
-		ViewAdminHome.alertNotImplemented.setContentText("Temporary password for user \"" + username + "\" is:\n\n" + tempPassword);
-		ViewAdminHome.alertNotImplemented.showAndWait();
 
+	    ViewAdminHome.alertNotImplemented.setTitle("One-Time Password Created");
+	    ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	    ViewAdminHome.alertNotImplemented.setContentText(
+	            "Temporary password for user \"" + username + "\" is:\n\n" + tempPassword
+	    );
+	    ViewAdminHome.alertNotImplemented.showAndWait();
 
 	}
 	
@@ -177,43 +272,75 @@ public class ControllerAdminHome {
 	 */
 	protected static void deleteUser() {
 		
-		String username = ViewAdminHome.text_TargetUsername.getText().trim();
-		
-		if (username.isEmpty()) {
-			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
-			ViewAdminHome.alertNotImplemented.setHeaderText(null);
-			ViewAdminHome.alertNotImplemented.setContentText("Please Enter Username");
-			ViewAdminHome.alertNotImplemented.showAndWait();
+	    Dialog<String> dialog = new Dialog<>();
+	    dialog.setTitle("Delete User");
+	    dialog.setHeaderText("Enter the username to delete");
+
+	    ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
+	    dialog.getDialogPane().getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
+	    TextField usernameField = new TextField();
+	    usernameField.setPromptText("Username");
+
+	    dialog.getDialogPane().setContent(usernameField);
+
+	    dialog.setResultConverter(dialogButton -> {
+	        if (dialogButton == deleteButtonType) {
+	            return usernameField.getText();
+	        }
+	        return null;
+	    });
+
+	    Optional<String> result = dialog.showAndWait();
+
+	    if (!result.isPresent()) {
 	        return;
 	    }
-		
-		if (!theDatabase.doesUserExist(username)) {
-			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
-			ViewAdminHome.alertNotImplemented.setHeaderText(null);
-			ViewAdminHome.alertNotImplemented.setContentText("User does not exist");
-			ViewAdminHome.alertNotImplemented.showAndWait();
+
+	    String username = result.get().trim();
+
+	    if (username.isEmpty()) {
+	        ViewAdminHome.alertNotImplemented.setTitle("Error");
+	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	        ViewAdminHome.alertNotImplemented.setContentText("Please enter a username.");
+	        ViewAdminHome.alertNotImplemented.showAndWait();
 	        return;
 	    }
-		
-		Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+
+	    if (!theDatabase.doesUserExist(username)) {
+	        ViewAdminHome.alertNotImplemented.setTitle("Error");
+	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	        ViewAdminHome.alertNotImplemented.setContentText("User \"" + username + "\" does not exist.");
+	        ViewAdminHome.alertNotImplemented.showAndWait();
+	        return;
+	    }
+
+	    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
 	    confirmAlert.setTitle("Confirm Deletion");
 	    confirmAlert.setHeaderText(null);
-	    confirmAlert.setContentText("Are you sure you want to delete the account \"" + username + "\"?");
-	    
+	    confirmAlert.setContentText("Are you sure you want to delete \"" + username + "\"?");
+
 	    ButtonType yesButton = new ButtonType("Yes");
 	    ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
 	    confirmAlert.getButtonTypes().setAll(yesButton, noButton);
 
-	    Optional<ButtonType> result = confirmAlert.showAndWait();
-	    if(result.isPresent() && result.get() == yesButton) {
-	        // Delete the user
+	    Optional<ButtonType> confirmResult = confirmAlert.showAndWait();
+
+	    if (confirmResult.isPresent() && confirmResult.get() == yesButton) {
+
 	        boolean success = theDatabase.deleteUser(username);
-	        ViewAdminHome.alertNotImplemented.setTitle(success ? "Success" : "Error");
-	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
-	        ViewAdminHome.alertNotImplemented.setContentText(success ? 
-	            "User \"" + username + "\" has been deleted." :
-	            "Failed to delete user \"" + username + "\".");
-	        ViewAdminHome.alertNotImplemented.showAndWait();
+
+	        if (success) {
+	            ViewAdminHome.alertNotImplemented.setTitle("Success");
+		        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+		        ViewAdminHome.alertNotImplemented.setContentText("User \"" + username + "\" has been deleted.");
+		        ViewAdminHome.alertNotImplemented.showAndWait();
+	        } else {
+	            ViewAdminHome.alertNotImplemented.setTitle("Error");
+		        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+		        ViewAdminHome.alertNotImplemented.setContentText("Failed to delete user \"" + username + "\".");
+		        ViewAdminHome.alertNotImplemented.showAndWait();
+	        }
 	    }
 
 	}
@@ -228,7 +355,7 @@ public class ControllerAdminHome {
 	 */
 	protected static void listUsers() {
 		
-		List<String> userList = theDatabase.getAllUsersForDisplay(); // 'database' is your Database instance
+		List<String> userList = theDatabase.getAllUsersForDisplay(); 
 	    if(userList.isEmpty()) {
 	        ViewAdminHome.alertNotImplemented.setTitle("User List");
 	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
@@ -237,13 +364,11 @@ public class ControllerAdminHome {
 	        return;
 	    }
 
-	    // Build the message for the popup
 	    StringBuilder message = new StringBuilder();
 	    for(String user : userList) {
-	        message.append(user).append("\n"); // extra newline between users
+	        message.append(user).append("\n"); 
 	    }
 
-	    // Show the alert popup
 	    ViewAdminHome.alertNotImplemented.setTitle("User List");
 	    ViewAdminHome.alertNotImplemented.setHeaderText(null);
 	    ViewAdminHome.alertNotImplemented.setContentText(message.toString());

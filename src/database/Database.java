@@ -1083,6 +1083,8 @@ public class Database {
 	    }
 	    return 0;
 	}
+	
+	
 
 	/*******
 	 * <p> Method: boolean deleteUser() </p>
@@ -1124,6 +1126,7 @@ public class Database {
 	        return false;
 	    }
 	}
+
 	
 	/*******
 	 * <p> Method: List<String> getAllUsersForDisplay() </p>
@@ -1167,6 +1170,33 @@ public class Database {
 	        e.printStackTrace();
 	    }
 	    return users;
+	}
+	
+	/*******
+	 * <p> Method: List<String> getInvitationEmailList() </p>
+	 * 
+	 * <p> Description: returns a list of the emails with invitations.</p>
+	 * 
+	 * @return a List of Strings
+	 *  
+	 */
+	public List<String> getInvitationEmailList() {
+	    List<String> emailList = new ArrayList<>();
+
+	    String query = "SELECT emailAddress FROM InvitationCodes";
+
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();
+
+	        while (rs.next()) {
+	            emailList.add(rs.getString("emailAddress"));
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return emailList;
 	}
 
 	/*******
