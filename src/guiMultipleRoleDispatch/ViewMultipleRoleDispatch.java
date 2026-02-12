@@ -110,6 +110,8 @@ public class ViewMultipleRoleDispatch {
 		System.out.println("*** Getting multiple role details for user: " + theUser.getUserName());
 		list = new ArrayList<String>();
 		list.add("<Select a role>");
+		
+		// Updated displayed role names accurately
 		if (theDatabase.getCurrentAdminRole()) list.add("Admin");
 		if (theDatabase.getCurrentNewRole1()) list.add("Student");
 		if (theDatabase.getCurrentNewRole2()) list.add("Staff");

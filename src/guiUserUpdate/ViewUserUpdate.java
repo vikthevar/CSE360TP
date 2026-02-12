@@ -371,8 +371,7 @@ public class ViewUserUpdate {
                 String email = result.get().trim();
 
                 // FSM validation
-                String error = emailAddressRecognizer.EmailAddressRecognizer
-                        .checkEmailAddress(email);
+                String error = emailAddressRecognizer.EmailAddressRecognizer.checkEmailAddress(email);
 
                 if (!error.isEmpty()) {
                     // Show error and re-prompt

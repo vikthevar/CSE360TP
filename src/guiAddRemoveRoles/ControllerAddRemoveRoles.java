@@ -148,12 +148,11 @@ public class ControllerAddRemoveRoles {
 		// items
 		boolean notTheFirst = false;
 		String theCurrentRoles = "";
-		String logicRoles = "";
+		
 		
 		// Admin role - It can only be at the head of a list
 		if (theDatabase.getCurrentAdminRole()) {
 			theCurrentRoles += "Admin";
-			logicRoles += "Admin";
 			notTheFirst = true;
 		}
 		
@@ -161,11 +160,9 @@ public class ControllerAddRemoveRoles {
 		if (theDatabase.getCurrentNewRole1()) {
 			if (notTheFirst) {
 				theCurrentRoles += ", Student";
-				logicRoles += ", Role1";
 			}
 			else {
 				theCurrentRoles += "Student";
-				logicRoles += "Role1";
 				notTheFirst = true;
 			}
 		}
@@ -175,11 +172,9 @@ public class ControllerAddRemoveRoles {
 		if (theDatabase.getCurrentNewRole2()) {
 			if (notTheFirst) {
 				theCurrentRoles += ", Staff"; 
-				logicRoles += ", Role2";
 			}
 			else {
 				theCurrentRoles += "Staff";
-				logicRoles += "Role2";
 				notTheFirst = true;
 			}
 		}

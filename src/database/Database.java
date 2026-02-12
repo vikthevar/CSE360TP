@@ -916,7 +916,7 @@ public class Database {
 	 * @param password is the new password for the user
 	 *  
 	 */
-	// update the password
+	// Update the password
 	public void updatePassword(String username,String password) {
 		String query = "UPDATE userDB SET password = ? WHERE username = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
