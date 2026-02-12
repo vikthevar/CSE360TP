@@ -44,7 +44,7 @@ public class Model {
 	 * In this project, the Controller is responsible for updating the GUI components,
 	 * and the Model is used strictly for password validation logic (evaluatePassword).
 	 * 
-	 * Keeping UI references (View.*) inside the Model creates dependency issues
+	 * Keeping UI references (View) inside the Model creates dependency issues
 	 * and compilation errors, so the UI update code was removed to maintain
 	 * proper separation of concerns and avoid build errors.
 	 */
