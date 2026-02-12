@@ -104,6 +104,10 @@ public class ViewAdminHome {
 	protected static Button button_ListUsers = new Button("List All Users");
 	protected static Button button_AddRemoveRoles = new Button("Add/Remove Roles");
 	protected static Alert alertNotImplemented = new Alert(AlertType.INFORMATION);
+	
+	// Sets up the input for the target username for reseting a password
+	protected static Label label_TargetUsername = new Label("Target Username:");
+	protected static TextField text_TargetUsername = new TextField();
 
 	// This is a separator and it is used to partition the GUI for various tasks
 	private static Line line_Separator4 = new Line(20, 525, width-20,525);
@@ -247,6 +251,11 @@ public class ViewAdminHome {
 		setupButtonUI(button_ManageInvitations, "Dialog", 16, 250, Pos.CENTER, 20, 270);
 		button_ManageInvitations.setOnAction((_) -> 
 			{ControllerAdminHome.manageInvitations(); });
+		
+		// This is to get the username from the admin to reset a password
+		setupLabelUI(label_TargetUsername, "Arial", 16, 200, Pos.BASELINE_LEFT, 300, 325);
+		setupTextUI(text_TargetUsername, "Arial", 16, 200, Pos.BASELINE_LEFT, 450, 320, true);
+
 	
 		setupButtonUI(button_SetOnetimePassword, "Dialog", 16, 250, Pos.CENTER, 20, 320);
 		button_SetOnetimePassword.setOnAction((_) -> 
@@ -285,7 +294,9 @@ public class ViewAdminHome {
     		button_AddRemoveRoles,
     		line_Separator4, 
     		button_Logout,
-    		button_Quit
+    		button_Quit,
+    		label_TargetUsername, //added for retrieving username for reset
+    		text_TargetUsername // added for retrieving username for reset
     		);
 		
 		// With theRootPane set up with the common widgets, it is up to displayAdminHome to show

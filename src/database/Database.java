@@ -1042,6 +1042,134 @@ public class Database {
 
 	
 	/*******
+	 * <p> Method: boolean setOneTimePassword() </p>
+	 * 
+	 * <p> Description: sets the one time password for a user.</p>
+	 * 
+	 * @return true if new password is sent, else false
+	 *  
+	 */
+	public boolean setOneTimePassword(String username, String newPassword) {
+	    String query = "UPDATE userDB SET password = ? WHERE userName = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, newPassword);
+	        pstmt.setString(2, username);
+
+	        int rowsUpdated = pstmt.executeUpdate();
+	        return rowsUpdated > 0;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+
+	/*******
+	 * <p> Method: int getNumberOfAdmins() </p>
+	 * 
+	 * <p> Description: returns the number of Admins in the program.</p>
+	 * 
+	 * @return integer of the number of Admins
+	 *  
+	 */
+	public int getNumberOfAdmins() {
+	    String query = "SELECT COUNT(*) FROM userDB WHERE adminRole = TRUE";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();
+	        if (rs.next()) {
+	            return rs.getInt(1);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return 0;
+	}
+
+	/*******
+	 * <p> Method: boolean deleteUser() </p>
+	 * 
+	 * <p> Description: deletes the specified user .</p>
+	 * 
+	 * @return true if the user is deleted, else false
+	 *  
+	 */
+	public boolean deleteUser(String username) {
+
+	    // Check if user exists
+	    if (!doesUserExist(username)) return false;
+	    
+	    // Check if user is admin
+	    String checkAdmin = "SELECT adminRole FROM userDB WHERE userName = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(checkAdmin)) {
+	        pstmt.setString(1, username);
+	        ResultSet rs = pstmt.executeQuery();
+
+	        if (rs.next()) {
+	            boolean isAdmin = rs.getBoolean("adminRole");
+
+	            // Prevent deleting the last admin
+	            if (isAdmin && getNumberOfAdmins() <= 1) {
+	                return false;
+	            }
+	        }
+
+	        // Perform delete
+	        String deleteQuery = "DELETE FROM userDB WHERE userName = ?";
+	        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery)) {
+	            deleteStmt.setString(1, username);
+	            return deleteStmt.executeUpdate() > 0;
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+	
+	/*******
+	 * <p> Method: List<String> getAllUsersForDisplay() </p>
+	 * 
+	 * <p> Description: returns a list of formatted user info strings for display.</p>
+	 * 
+	 * @return a List of Strings
+	 *  
+	 */
+	public List<String> getAllUsersForDisplay() {
+	    List<String> users = new ArrayList<>();
+	    String query = "SELECT * FROM userDB";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();
+	        while (rs.next()) {
+	            String username = rs.getString("userName");
+	            String firstName = rs.getString("firstName");
+	            String middleName = rs.getString("middleName");
+	            String lastName = rs.getString("lastName");
+	            String email = rs.getString("emailAddress");
+	            boolean admin = rs.getBoolean("adminRole");
+	            boolean role1 = rs.getBoolean("newRole1");
+	            boolean role2 = rs.getBoolean("newRole2");
+	            
+	            // Build role string
+	            List<String> roles = new ArrayList<>();
+	            if(admin) roles.add("Admin");
+	            if(role1) roles.add("Role1");
+	            if(role2) roles.add("Role2");
+	            
+	            String userInfo = "Username: " + username + "\n" +
+	                              "Name: " + firstName + 
+	                              (middleName != null && !middleName.isEmpty() ? " " + middleName : "") +
+	                              " " + lastName + "\n" +
+	                              "Email: " + email + "\n" +
+	                              "Roles: " + (roles.isEmpty() ? "None" : String.join(", ", roles)) + "\n";
+	            
+	            users.add(userInfo);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return users;
+	}
+
+	/*******
 	 * <p> Debugging method</p>
 	 * 
 	 * <p> Description: Debugging method that dumps the database of the console.</p>
@@ -1064,7 +1192,7 @@ public class Database {
 		}
 		resultSet.close();
 	}
-
+	
 
 	/*******
 	 * <p> Method: void closeConnection()</p>

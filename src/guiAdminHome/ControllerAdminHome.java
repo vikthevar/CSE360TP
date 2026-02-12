@@ -2,6 +2,11 @@ package guiAdminHome;
 
 import database.Database;
 import emailAddressRecognizer.EmailAddressRecognizer;
+import java.util.List;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar;
+import java.util.Optional;
 
 /*******
  * <p> Title: GUIAdminHomePage Class. </p>
@@ -96,6 +101,8 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void manageInvitations () {
+		
+		
 		System.out.println("\n*** WARNING ***: Manage Invitations Not Yet Implemented");
 		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
 		ViewAdminHome.alertNotImplemented.setHeaderText("Manage Invitations Issue");
@@ -112,11 +119,52 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void setOnetimePassword () {
-		System.out.println("\n*** WARNING ***: One-Time Password Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("One-Time Password Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("One-Time Password Not Yet Implemented");
+		
+		String username = ViewAdminHome.text_TargetUsername.getText().trim();
+				
+		if (username.isEmpty()) {
+			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+			ViewAdminHome.alertNotImplemented.setHeaderText(null);
+			ViewAdminHome.alertNotImplemented.setContentText("Please Enter Username");
+			ViewAdminHome.alertNotImplemented.showAndWait();
+	        return;
+	    }
+		
+		if (!theDatabase.doesUserExist(username)) {
+			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+			ViewAdminHome.alertNotImplemented.setHeaderText(null);
+			ViewAdminHome.alertNotImplemented.setContentText("User does not exist");
+			ViewAdminHome.alertNotImplemented.showAndWait();
+	        return;
+	    }
+		
+		// Generates new Password
+		String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+	    StringBuilder password = new StringBuilder();
+
+	    for (int i = 0; i < 8; i++) {
+	        int index = (int) (Math.random() * chars.length());
+	        password.append(chars.charAt(index));
+	    }
+
+		String tempPassword = password.toString();
+
+		boolean success = theDatabase.setOneTimePassword(username, tempPassword);
+
+	    if (!success) {
+	    	ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+			ViewAdminHome.alertNotImplemented.setHeaderText(null);
+			ViewAdminHome.alertNotImplemented.setContentText("falied to set one time password");
+			ViewAdminHome.alertNotImplemented.showAndWait();
+	        return;
+	    }
+
+	    ViewAdminHome.alertNotImplemented.setTitle("One-Time Password Created");
+		ViewAdminHome.alertNotImplemented.setHeaderText(null);
+		ViewAdminHome.alertNotImplemented.setContentText("Temporary password for user \"" + username + "\" is:\n\n" + tempPassword);
 		ViewAdminHome.alertNotImplemented.showAndWait();
+
+
 	}
 	
 	/**********
@@ -128,11 +176,46 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void deleteUser() {
-		System.out.println("\n*** WARNING ***: Delete User Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("Delete User Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("Delete User Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.showAndWait();
+		
+		String username = ViewAdminHome.text_TargetUsername.getText().trim();
+		
+		if (username.isEmpty()) {
+			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+			ViewAdminHome.alertNotImplemented.setHeaderText(null);
+			ViewAdminHome.alertNotImplemented.setContentText("Please Enter Username");
+			ViewAdminHome.alertNotImplemented.showAndWait();
+	        return;
+	    }
+		
+		if (!theDatabase.doesUserExist(username)) {
+			ViewAdminHome.alertNotImplemented.setTitle("*** Error ***");
+			ViewAdminHome.alertNotImplemented.setHeaderText(null);
+			ViewAdminHome.alertNotImplemented.setContentText("User does not exist");
+			ViewAdminHome.alertNotImplemented.showAndWait();
+	        return;
+	    }
+		
+		Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+	    confirmAlert.setTitle("Confirm Deletion");
+	    confirmAlert.setHeaderText(null);
+	    confirmAlert.setContentText("Are you sure you want to delete the account \"" + username + "\"?");
+	    
+	    ButtonType yesButton = new ButtonType("Yes");
+	    ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+	    confirmAlert.getButtonTypes().setAll(yesButton, noButton);
+
+	    Optional<ButtonType> result = confirmAlert.showAndWait();
+	    if(result.isPresent() && result.get() == yesButton) {
+	        // Delete the user
+	        boolean success = theDatabase.deleteUser(username);
+	        ViewAdminHome.alertNotImplemented.setTitle(success ? "Success" : "Error");
+	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	        ViewAdminHome.alertNotImplemented.setContentText(success ? 
+	            "User \"" + username + "\" has been deleted." :
+	            "Failed to delete user \"" + username + "\".");
+	        ViewAdminHome.alertNotImplemented.showAndWait();
+	    }
+
 	}
 	
 	/**********
@@ -144,11 +227,28 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void listUsers() {
-		System.out.println("\n*** WARNING ***: List Users Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("List User Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("List Users Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.showAndWait();
+		
+		List<String> userList = theDatabase.getAllUsersForDisplay(); // 'database' is your Database instance
+	    if(userList.isEmpty()) {
+	        ViewAdminHome.alertNotImplemented.setTitle("User List");
+	        ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	        ViewAdminHome.alertNotImplemented.setContentText("No users found in the database.");
+	        ViewAdminHome.alertNotImplemented.showAndWait();
+	        return;
+	    }
+
+	    // Build the message for the popup
+	    StringBuilder message = new StringBuilder();
+	    for(String user : userList) {
+	        message.append(user).append("\n"); // extra newline between users
+	    }
+
+	    // Show the alert popup
+	    ViewAdminHome.alertNotImplemented.setTitle("User List");
+	    ViewAdminHome.alertNotImplemented.setHeaderText(null);
+	    ViewAdminHome.alertNotImplemented.setContentText(message.toString());
+	    ViewAdminHome.alertNotImplemented.showAndWait();
+
 	}
 	
 	/**********
