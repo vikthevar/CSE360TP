@@ -1044,7 +1044,8 @@ public class Database {
 	/*******
 	 * <p> Method: boolean setOneTimePassword() </p>
 	 * 
-	 * <p> @param username , @param newPassword				</p>
+	 * @param username is a username
+	 * @param newPassword				
 	 * 
 	 * 
 	 * <p> Description: sets the one time password for a user.</p>
@@ -1092,6 +1093,7 @@ public class Database {
 	/*******
 	 * <p> Method: boolean deleteUser() </p>
 	 * 
+	 * @param username the username
 	 * <p> Description: deletes the specified user .</p>
 	 * 
 	 * @return true if the user is deleted, else false
