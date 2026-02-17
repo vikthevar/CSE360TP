@@ -224,7 +224,7 @@ public class Database {
  *  <p> Method: List getUserList() </p>
  *  
  *  <P> Description: Generate an List of Strings, one for each user in the database,
- *  starting with "<Select User>" at the start of the list. </p>
+ *  starting with {@code "<Select User>"} at the start of the list. </p>
  *  
  *  @return a list of userNames found in the database.
  */
@@ -1044,6 +1044,9 @@ public class Database {
 	/*******
 	 * <p> Method: boolean setOneTimePassword() </p>
 	 * 
+	 * <p> @param username , @param newPassword				</p>
+	 * 
+	 * 
 	 * <p> Description: sets the one time password for a user.</p>
 	 * 
 	 * @return true if new password is sent, else false
@@ -1129,7 +1132,7 @@ public class Database {
 
 	
 	/*******
-	 * <p> Method: List<String> getAllUsersForDisplay() </p>
+	 * Method: {@code List<String> getAllUsersForDisplay()}
 	 * 
 	 * <p> Description: returns a list of formatted user info strings for display.</p>
 	 * 
@@ -1173,7 +1176,7 @@ public class Database {
 	}
 	
 	/*******
-	 * <p> Method: List<String> getInvitationEmailList() </p>
+	 * <p> Method: {@code List<String> getInvitationEmailList(}) </p>
 	 * 
 	 * <p> Description: returns a list of the emails with invitations.</p>
 	 * 
