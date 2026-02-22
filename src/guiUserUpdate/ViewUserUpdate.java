@@ -114,7 +114,9 @@ public class ViewUserUpdate {
 	private static Stage theStage;				// The Stage that JavaFX has established for us	
 	private static Pane theRootPane;			// The Pane that holds all the GUI widgets
 	private static User theUser;				// The current user of the application
-
+	
+	
+	/** The Scene that each invocation of the user update view populates. */
 	public static Scene theUserUpdateScene = null;	// The Scene each invocation populates
 
 	private static Optional<String> result;		// The result from a pop-up dialog
