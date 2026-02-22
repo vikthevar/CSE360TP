@@ -1,5 +1,6 @@
 package guiRole2;
 
+/** Model backing the Role 2 Home GUI. */
 public class ModelRole2Home {
 
 /*******
@@ -17,5 +18,8 @@ public class ModelRole2Home {
  * @version 1.01		2025-09-13 Updated JavaDoc description
  *  
  */
+	
+	/** Creates a new Role 2 home model instance. */
+	public ModelRole2Home() { }
 
 }

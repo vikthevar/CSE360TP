@@ -16,5 +16,8 @@ package guiAdminHome;
  */
 
 public class ModelAdminHome {
+	
+	/** Creates a new model for the Admin Home GUI. */
+	public ModelAdminHome() { }
 
 }

@@ -16,5 +16,8 @@ package guiFirstAdmin;
  */
 
 public class ModelFirstAdmin {
-
+	
+	/** Creates a new model for the First Admin setup GUI. */
+	public ModelFirstAdmin() { }
+	
 }
