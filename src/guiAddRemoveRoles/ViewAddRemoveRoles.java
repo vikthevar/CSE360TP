@@ -97,6 +97,7 @@ public class ViewAddRemoveRoles {
 	protected static Pane theRootPane;			// The Pane that holds all the GUI widgets 
 	protected static User theUser;				// The current user of the application
 	
+	/** Scene populated each time the Add/Remove Roles view is displayed. */
 	public static Scene theAddRemoveRolesScene = null;	// The Scene each invocation populates
 	protected static String theSelectedUser = "";	// The user whose roles are being updated
 	protected static String theAddRole = "";		// The role being added
@@ -162,7 +163,7 @@ public class ViewAddRemoveRoles {
 	 * each GUI object. </p>
 	 * 
 	 * This is a singleton, so this is performed just one.  Subsequent uses fill in the changeable
-	 * fields using the displayAddRempoveRoles method.</p>
+	 * fields using the displayAddRempoveRoles method.
 	 * 
 	 */
 	public ViewAddRemoveRoles() {

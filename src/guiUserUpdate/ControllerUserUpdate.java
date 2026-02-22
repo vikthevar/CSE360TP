@@ -3,6 +3,8 @@ package guiUserUpdate;
 import entityClasses.User;
 import javafx.stage.Stage;
 
+
+/** Controller for the User Update GUI workflow. */
 public class ControllerUserUpdate {
 	/*-********************************************************************************************
 
@@ -35,6 +37,13 @@ public class ControllerUserUpdate {
 	 * 
 	 * @param theUser specifies the user so we go to the right page and so the right information
 	 */
+	
+	
+	/** Creates a new ControllerUserUpdate instance. */
+	public ControllerUserUpdate() { }
+	
+	
+	
 	protected static void goToUserHomePage(Stage theStage, User theUser) {
 		
 		// Get the roles the user selected during login

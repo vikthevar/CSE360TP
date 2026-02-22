@@ -16,5 +16,8 @@ package guiAddRemoveRoles;
  */
 
 public class ModelAddRemoveRoles {
+	
+	/** Creates a new model for the Add/Remove Roles GUI. */
+	public ModelAddRemoveRoles() { }
 
 }

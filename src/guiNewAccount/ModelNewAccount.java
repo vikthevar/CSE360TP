@@ -16,4 +16,6 @@ package guiNewAccount;
  */
 public class ModelNewAccount {
 
+	/** Creates a new model for the New Account GUI. */
+	public ModelNewAccount() { }
 }

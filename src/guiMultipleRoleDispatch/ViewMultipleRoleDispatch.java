@@ -89,7 +89,13 @@ public class ViewMultipleRoleDispatch {
 	Constructor
 
 	 */
-
+	
+	/**
+	 * Displays the multiple-role dispatch screen.
+	 * @param ps the primary stage used to show the scene
+	 * 
+	 * @param user the user whose roles are being dispatched
+	 */
 	public static void displayMultipleRoleDispatch(Stage ps, User user) {
 		
 		// Establish the references to the GUI and the current user

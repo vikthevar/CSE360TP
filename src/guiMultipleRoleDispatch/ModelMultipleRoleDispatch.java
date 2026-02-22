@@ -16,5 +16,8 @@ package guiMultipleRoleDispatch;
  */
 
 public class ModelMultipleRoleDispatch {
+	
+	/** Creates a new model for the Multiple Role Dispatch GUI. */
+	public ModelMultipleRoleDispatch() { }
 
 }

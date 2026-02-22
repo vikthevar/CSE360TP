@@ -116,21 +116,33 @@ public class Model {
 	}
 	*/
 	
+	/** Creates a new password evaluation model instance. */
+	public Model() { }
+	
 	/*-********************************************************************************************
 	 * 
 	 * Attributes used by the Finite State Machine to inform the user about what was and was not
 	 * valid and point to the character of the error.  This will enhance the user experience.
 	 * 
 	 */
-
+	
+	/** The error message for an invalid password initialized as empty. */
 	public static String passwordErrorMessage = "";		// The error message text
+	/** The password string currently being processed. */
 	public static String passwordInput = "";			// The input being processed
+	/** Index of the character where the first password validation error occurred; -1 if none. */
 	public static int passwordIndexofError = -1;		// The index where the error was located
+	/** True if an uppercase letter was found in the password. */
 	public static boolean foundUpperCase = false;
+	/** True if a lowercase letter was found in the password. */
 	public static boolean foundLowerCase = false;
+	/** True if a numeric digit was found in the password. */
 	public static boolean foundNumericDigit = false;
+	/** True if a special character was found in the password. */
 	public static boolean foundSpecialChar = false;
+	/** True if the password meets the minimum length requirement. */
 	public static boolean foundLongEnough = false;
+	/** True if the password exceeds the maximum allowed length. */
 	public static boolean foundTooLong = false;
 	private static String inputLine = "";				// The input line
 	private static char currentChar;					// The current character in the line

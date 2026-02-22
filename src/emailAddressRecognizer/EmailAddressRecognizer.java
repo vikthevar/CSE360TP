@@ -1,6 +1,7 @@
 package emailAddressRecognizer;
 
 
+/** Validates email address input and reports the first error position when invalid. */
 public class EmailAddressRecognizer {
 	/**
 	 * <p> Title: FSM-translated EmailAddressRecognizer. </p>
@@ -29,9 +30,16 @@ public class EmailAddressRecognizer {
 	 * pointer to the character of the error will enhance the user experience.
 	 * 
 	 */
-
+	
+	/** Creates a new EmailAddressRecognizer instance. */
+	public EmailAddressRecognizer() { }
+	
+	/** Detailed error message describing why the current email address input is invalid(Initialized empty). */
 	public static String emailAddressErrorMessage = "";	// The error message text
+	
+	/** The email address string currently being processed by the recognizer. */
 	public static String emailAddressInput = "";		// The input being processed
+	/** Index of the character where the first validation error occurred; -1 if none. */
 	public static int emailAddressIndexofError = -1;	// The index where the error was located
 	private static int state = 0;						// The current state value
 	private static int nextState = 0;					// The next state value
