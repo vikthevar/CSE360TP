@@ -36,10 +36,10 @@ public class PostStore {
     /**
      * Creates and stores a new post if inputs are valid.
      *
-     * @param title post title
-     * @param body post body
-     * @param author post author
-     * @param thread thread name (defaults to "General" if null/empty)
+     * @param title - post title
+     * @param body - post body
+     * @param author - post author
+     * @param thread - thread name (defaults to "General" if null/empty)
      * @return null if success; otherwise an error message
      */
     public String createPost(String title, String body, String author, String thread) {
@@ -63,7 +63,7 @@ public class PostStore {
     /**
      * Returns a post by ID.
      *
-     * @param postId post ID
+     * @param postId - post ID
      * @return the Post if found; otherwise null
      */
     public Post getPostById(int postId) {
@@ -78,9 +78,9 @@ public class PostStore {
     /**
      * Updates an existing post's title and/or body.
      *
-     * @param postId post ID
-     * @param newTitle new title (required)
-     * @param newBody new body (required)
+     * @param postId - post ID
+     * @param newTitle - new title (required)
+     * @param newBody - new body (required)
      * @return null if success; otherwise an error message
      */
     public String updatePost(int postId, String newTitle, String newBody) {
@@ -104,7 +104,7 @@ public class PostStore {
      * Deletes a post by marking it as deleted (soft delete).
      * Replies remain stored and can detect deleted posts via this flag.
      *
-     * @param postId post ID
+     * @param postId - post ID
      * @return null if success; otherwise an error message
      */
     public String deletePost(int postId) {
@@ -122,7 +122,7 @@ public class PostStore {
      * Searches all posts by keyword and stores results in subsetPosts.
      * Search is case-insensitive and checks title + body.
      *
-     * @param keyword search keyword (null/empty returns an empty subset)
+     * @param keyword - search keyword (null/empty returns an empty subset)
      */
     public void searchPosts(String keyword) {
         subsetPosts.clear();

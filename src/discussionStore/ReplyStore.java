@@ -62,7 +62,7 @@ public class ReplyStore {
     /**
      * Returns a reply by ID.
      *
-     * @param replyId reply ID
+     * @param replyId - reply ID
      * @return Reply if found; otherwise null
      */
     public Reply getReplyById(int replyId) {
@@ -77,7 +77,7 @@ public class ReplyStore {
     /**
      * Returns all replies associated with a given post ID.
      *
-     * @param postId post ID
+     * @param postId - post ID
      * @return list of matching replies (may be empty)
      */
     public List<Reply> getRepliesByPostId(int postId) {
@@ -93,8 +93,8 @@ public class ReplyStore {
     /**
      * Updates the body of an existing reply.
      *
-     * @param replyId reply ID
-     * @param newBody new reply body
+     * @param replyId - reply ID
+     * @param newBody - new reply body
      * @return null if success; otherwise error message
      */
     public String updateReply(int replyId, String newBody) {
@@ -116,7 +116,7 @@ public class ReplyStore {
     /**
      * Deletes a reply.
      *
-     * @param replyId reply ID
+     * @param replyId - reply ID
      * @return null if success; otherwise error message
      */
     public String deleteReply(int replyId) {
@@ -155,7 +155,7 @@ public class ReplyStore {
     }
 
     /**
-     * Returns all replies (unmodifiable).
+     * Returns all replies.
      *
      * @return list of all replies
      */
