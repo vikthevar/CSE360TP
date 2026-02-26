@@ -13,6 +13,8 @@ import entityClasses.Reply;
  *
  * Post existence validation is handled in the Controller layer(guiDiscussion).
  */
+
+
 public class ReplyStore {
 
     /** List containing all replies */
@@ -20,6 +22,8 @@ public class ReplyStore {
 
     /** List containing subset replies (e.g., search results) */
     private final List<Reply> subsetReplies;
+    
+    
 
     /** Auto-incrementing reply ID */
     private int nextReplyId;
@@ -43,7 +47,8 @@ public class ReplyStore {
      * @return null if success; otherwise validation error message
      */
     public String createReply(int postId, String body, String author) {
-
+    	
+    	
         String validationMessage = ReplyValidator.validate(postId, body);
         if (validationMessage != null) {
             return validationMessage;

@@ -150,4 +150,8 @@ public class Post {
     public void markDeleted() {
         this.isDeleted = true;
     }
+    
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
+    }
 }

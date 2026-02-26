@@ -200,24 +200,29 @@ public class ViewDiscussion {
 		// GUI Area 4: Replies
 		setupLabelUI(label_ReplySection, "Arial", 20, 200, Pos.BASELINE_LEFT, 20, 525);
 
+		// Row 1: Post ID + Author
 		setupLabelUI(label_ReplyPostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 20, 560);
-		setupTextUI(text_ReplyPostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 170, 555, true);
+		setupTextUI(text_ReplyPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 165, 555, true);
 
-		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 270, 560);
-		setupTextUI(text_ReplyBody, "Arial", 14, 240, Pos.BASELINE_LEFT, 350, 555, true);
+		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 270, 560);
+		setupTextUI(text_ReplyAuthor, "Arial", 14, 200, Pos.BASELINE_LEFT, 360, 555, true);
 
-		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 20, 595);
-		setupTextUI(text_ReplyAuthor, "Arial", 14, 160, Pos.BASELINE_LEFT, 170, 590, true);
+		// Row 2: Reply Body 
+		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 20, 595);
+		setupTextUI(text_ReplyBody, "Arial", 14, 540, Pos.BASELINE_LEFT, 165, 590, true);
 
-		setupButtonUI(button_CreateReply, "Dialog", 14, 140, Pos.CENTER, 350, 590);
+		// Row 3: Actions (Create + View)
+		setupButtonUI(button_CreateReply, "Dialog", 14, 140, Pos.CENTER, 165, 625);
 		button_CreateReply.setOnAction((_) -> { ControllerDiscussion.performCreateReply(); });
 
-		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 170, Pos.BASELINE_LEFT, 520, 560);
-		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 70, Pos.BASELINE_LEFT, 690, 555, true);
-		setupButtonUI(button_ViewReplies, "Dialog", 14, 120, Pos.CENTER, 690, 590);
+		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 170, Pos.BASELINE_LEFT, 340, 630);
+		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 510, 625, true);
+
+		setupButtonUI(button_ViewReplies, "Dialog", 14, 140, Pos.CENTER, 610, 625);
 		button_ViewReplies.setOnAction((_) -> { performViewRepliesForPost(); });
 
-		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 750, 110, 20, 635);
+		// Output area: taller + readable
+		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 750, 135, 20, 660);
 
 		// Place all widget items into the Root Pane's list of children
 		theRootPane.getChildren().addAll(
@@ -289,10 +294,16 @@ public class ViewDiscussion {
 			alertError.showAndWait();
 			return;
 		}
+		
+		Post p = ControllerDiscussion.getPostStore().getPostById(postId);
+	    if (p == null) {
+	        alertError.setContentText("Post ID does not exist.");
+	        alertError.showAndWait();
+	        return;
+	    }
 
 		List<Reply> replies = ControllerDiscussion.getReplyStore().getRepliesByPostId(postId);
 
-		Post p = ControllerDiscussion.getPostStore().getPostById(postId);
 		boolean postDeleted = (p != null && p.isDeleted());
 
 		StringBuilder sb = new StringBuilder();

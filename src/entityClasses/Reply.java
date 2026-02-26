@@ -25,6 +25,8 @@ public class Reply {
 
     /** Timestamp of when the reply was created */
     private LocalDateTime createdTimestamp;
+    
+    private boolean isDeleted;
 
     /**
      * Constructs a new Reply object.
@@ -40,6 +42,7 @@ public class Reply {
         this.body = body;
         this.author = author;
         this.createdTimestamp = LocalDateTime.now();
+        this.isDeleted = false;   
     }
 
     /**
@@ -94,5 +97,12 @@ public class Reply {
      */
     public LocalDateTime getCreatedTimestamp() {
         return createdTimestamp;
+    }
+    
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
+    }
+    public boolean isDeleted() {
+        return isDeleted;
     }
 }
