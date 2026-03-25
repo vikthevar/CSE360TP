@@ -72,4 +72,18 @@ public class PostValidator {
         }
         return thread.trim();
     }
+    
+    /**
+     * Normalizes a thread name for searching.
+     * Returns empty string when no thread filter is provided.
+     *
+     * @param thread thread name (may be null)
+     * @return normalized lowercase-ready thread filter or empty string
+     */
+    public static String normalizeThreadSearch(String thread) {
+        if (thread == null || thread.trim().isEmpty()) {
+            return "";
+        }
+        return thread.trim().toLowerCase();
+    }
 }

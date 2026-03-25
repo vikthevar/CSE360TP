@@ -1,19 +1,24 @@
 package discussionStore;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import discussionValidation.PostValidator;
 import entityClasses.Post;
+import database.Database;
 
 /**
- * The PostStore class stores all discussion posts and supports operating on
+ * The PostStore class manages discussion posts and supports operating on
  * subsets of posts (e.g., search results).
  *
- * This class provides CRUD operations and input validation for posts.
+ * This version is database-backed so posts persist across application relaunches.
  */
 public class PostStore {
+
+    /** Shared database reference */
+    private final Database database;
 
     /** List containing all posts */
     private final List<Post> allPosts;
@@ -21,25 +26,38 @@ public class PostStore {
     /** List containing the current subset of posts (e.g., search results) */
     private final List<Post> subsetPosts;
 
-    /** Next ID used when creating posts */
-    private int nextPostId;
-
     /**
-     * Constructs an empty PostStore.
+     * Constructs a PostStore and loads posts from the database.
+     *
+     * @param database database connection/helper object
      */
-    public PostStore() {
+    public PostStore(Database database) {
+        this.database = database;
         this.allPosts = new ArrayList<>();
         this.subsetPosts = new ArrayList<>();
-        this.nextPostId = 1;
+        refreshAllPostsFromDatabase();
+        subsetPosts.addAll(allPosts);
+    }
+
+    /**
+     * Reloads all posts from the database into memory.
+     */
+    private void refreshAllPostsFromDatabase() {
+        allPosts.clear();
+        try {
+            allPosts.addAll(database.hw2ListPosts());
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load posts from database.", e);
+        }
     }
 
     /**
      * Creates and stores a new post if inputs are valid.
      *
-     * @param title - post title
-     * @param body - post body
-     * @param author - post author
-     * @param thread - thread name (defaults to "General" if null/empty)
+     * @param title post title
+     * @param body post body
+     * @param author post author
+     * @param thread thread name (defaults to "General" if null/empty)
      * @return null if success; otherwise an error message
      */
     public String createPost(String title, String body, String author, String thread) {
@@ -51,22 +69,30 @@ public class PostStore {
 
         String normalizedThread = PostValidator.normalizeThread(thread);
 
-        Post post = new Post(nextPostId, title.trim(), body.trim(),
-                (author == null ? "" : author.trim()), normalizedThread);
-
-        allPosts.add(post);
-        nextPostId++;
-
-        return null;
+        try {
+            database.hw2CreatePost(
+                    title.trim(),
+                    body.trim(),
+                    (author == null ? "" : author.trim()),
+                    normalizedThread
+            );
+            refreshAllPostsFromDatabase();
+            subsetPosts.clear();
+            subsetPosts.addAll(allPosts);
+            return null;
+        } catch (SQLException e) {
+            return "Database error while creating post.";
+        }
     }
 
     /**
      * Returns a post by ID.
      *
-     * @param postId - post ID
+     * @param postId post ID
      * @return the Post if found; otherwise null
      */
     public Post getPostById(int postId) {
+        refreshAllPostsFromDatabase();
         for (Post p : allPosts) {
             if (p.getPostId() == postId) {
                 return p;
@@ -76,11 +102,11 @@ public class PostStore {
     }
 
     /**
-     * Updates an existing post's title and/or body.
+     * Updates an existing post's title/body/thread.
      *
-     * @param postId - post ID
-     * @param newTitle - new title (required)
-     * @param newBody - new body (required)
+     * @param postId post ID
+     * @param newTitle new title
+     * @param newBody new body
      * @return null if success; otherwise an error message
      */
     public String updatePost(int postId, String newTitle, String newBody) {
@@ -95,16 +121,32 @@ public class PostStore {
             return validationMessage;
         }
 
-        post.setTitle(newTitle.trim());
-        post.setBody(newBody.trim());
-        return null;
+        try {
+            boolean updated = database.hw2UpdatePost(
+                    postId,
+                    newTitle.trim(),
+                    newBody.trim(),
+                    post.getThread()
+            );
+
+            if (!updated) {
+                return "Post not found.";
+            }
+
+            refreshAllPostsFromDatabase();
+            subsetPosts.clear();
+            subsetPosts.addAll(allPosts);
+            return null;
+        } catch (SQLException e) {
+            return "Database error while updating post.";
+        }
     }
 
     /**
      * Deletes a post by marking it as deleted (soft delete).
      * Replies remain stored and can detect deleted posts via this flag.
      *
-     * @param postId - post ID
+     * @param postId post ID
      * @return null if success; otherwise an error message
      */
     public String deletePost(int postId) {
@@ -114,32 +156,40 @@ public class PostStore {
             return "Post not found.";
         }
 
-        post.markDeleted();
-        return null;
+        try {
+            boolean deleted = database.hw2SoftDeletePost(postId);
+            if (!deleted) {
+                return "Post not found.";
+            }
+
+            refreshAllPostsFromDatabase();
+            subsetPosts.clear();
+            subsetPosts.addAll(allPosts);
+            return null;
+        } catch (SQLException e) {
+            return "Database error while deleting post.";
+        }
     }
 
     /**
-     * Searches all posts by keyword and stores results in subsetPosts.
-     * Search is case-insensitive and checks title + body.
+     * Searches all posts by keyword and optional thread, then stores results in subsetPosts.
      *
-     * @param keyword - search keyword (null/empty returns an empty subset)
+     * Rules:
+     * - keyword blank + thread blank => show all posts
+     * - keyword blank + thread filled => show all posts in that thread
+     * - keyword filled + thread blank => search title/body across all threads
+     * - keyword filled + thread filled => search title/body within that thread
+     *
+     * @param keyword search keyword (may be null/blank)
+     * @param thread thread filter (may be null/blank)
      */
-    public void searchPosts(String keyword) {
+    public void searchPosts(String keyword, String thread) {
         subsetPosts.clear();
 
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return;
-        }
-
-        String key = keyword.trim().toLowerCase();
-
-        for (Post p : allPosts) {
-            String title = (p.getTitle() == null) ? "" : p.getTitle().toLowerCase();
-            String body = (p.getBody() == null) ? "" : p.getBody().toLowerCase();
-
-            if (title.contains(key) || body.contains(key)) {
-                subsetPosts.add(p);
-            }
+        try {
+            subsetPosts.addAll(database.hw2SearchPosts(keyword, thread));
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to search posts from database.", e);
         }
     }
 
@@ -149,7 +199,8 @@ public class PostStore {
      * @return list of all posts
      */
     public List<Post> getAllPosts() {
-        return Collections.unmodifiableList(allPosts);
+        refreshAllPostsFromDatabase();
+        return Collections.unmodifiableList(new ArrayList<>(allPosts));
     }
 
     /**
@@ -158,6 +209,6 @@ public class PostStore {
      * @return subset list of posts
      */
     public List<Post> getSubsetPosts() {
-        return Collections.unmodifiableList(subsetPosts);
+        return Collections.unmodifiableList(new ArrayList<>(subsetPosts));
     }
 }

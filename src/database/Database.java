@@ -130,7 +130,7 @@ public class Database {
 	    String postTable = "CREATE TABLE IF NOT EXISTS HW2_POSTS ("
 				+ "postId INT AUTO_INCREMENT PRIMARY KEY, "
 				+ "title VARCHAR(200) NOT NULL, "
-				+ "body VARCHAR(2000) NOT NULL, "
+				+ "body VARCHAR(5000) NOT NULL, "
 				+ "author VARCHAR(100) NOT NULL, "
 				+ "thread VARCHAR(100) NOT NULL, "
 				+ "isDeleted BOOL DEFAULT FALSE"
@@ -140,8 +140,9 @@ public class Database {
 		String replyTable = "CREATE TABLE IF NOT EXISTS HW2_REPLIES ("
 		        + "replyId INT AUTO_INCREMENT PRIMARY KEY, "
 		        + "postId INT NOT NULL, "
-		        + "body VARCHAR(2000) NOT NULL, "
-		        + "author VARCHAR(100) NOT NULL"
+		        + "body VARCHAR(5000) NOT NULL, "
+		        + "author VARCHAR(100) NOT NULL, "
+		        + "isDeleted BOOL DEFAULT FALSE"
 		        + ")";
 		statement.execute(replyTable);
 	}
@@ -1276,8 +1277,11 @@ public class Database {
 	/**
 	 * Create a reply. Returns generated replyId.
 	 */
+	/**
+	 * Create a reply. Returns generated replyId.
+	 */
 	public int hw2CreateReply(int postId, String body, String author) throws SQLException {
-		String sql = "SELECT replyId, postId, body, author FROM HW2_REPLIES WHERE postId = ? ORDER BY replyId";
+	    String sql = "INSERT INTO HW2_REPLIES (postId, body, author, isDeleted) VALUES (?, ?, ?, FALSE)";
 	    try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 	        ps.setInt(1, postId);
 	        ps.setString(2, body);
@@ -1307,7 +1311,7 @@ public class Database {
 	                        rs.getString("body"),
 	                        rs.getString("author")
 	                );
-	           
+	                r.setDeleted(rs.getBoolean("isDeleted"));
 	                out.add(r);
 	            }
 	        }
@@ -1318,8 +1322,11 @@ public class Database {
 	/**
 	 * Read: get reply by id. Returns null if not found.
 	 */
+	/**
+	 * Read: get reply by id. Returns null if not found.
+	 */
 	public Reply hw2GetReplyById(int replyId) throws SQLException {
-		String sql = "SELECT replyId, postId, body, author FROM HW2_REPLIES WHERE replyId = ?";
+	    String sql = "SELECT replyId, postId, body, author, isDeleted FROM HW2_REPLIES WHERE replyId = ?";
 	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
 	        ps.setInt(1, replyId);
 	        try (ResultSet rs = ps.executeQuery()) {
@@ -1331,7 +1338,7 @@ public class Database {
 	                    rs.getString("body"),
 	                    rs.getString("author")
 	            );
-	     
+	            r.setDeleted(rs.getBoolean("isDeleted"));
 	            return r;
 	        }
 	    }
@@ -1376,6 +1383,11 @@ public class Database {
 	 * - If keyword is non-empty: search reply body/author
 	 * - If postIdFilter != null: filter by postId
 	 */
+	/**
+	 * Search non-deleted replies by keyword OR by postId.
+	 * - If keyword is non-empty: search reply body/author
+	 * - If postIdFilter != null: filter by postId
+	 */
 	public List<Reply> hw2SearchReplies(String keyword, Integer postIdFilter) throws SQLException {
 	    List<Reply> out = new ArrayList<>();
 	    String kw = (keyword == null) ? "" : keyword.trim().toLowerCase();
@@ -1384,7 +1396,7 @@ public class Database {
 	    boolean hasPostId = (postIdFilter != null);
 
 	    StringBuilder sb = new StringBuilder();
-	    sb.append("SELECT replyId, postId, body, author FROM HW2_REPLIES WHERE 1=1 ");
+	    sb.append("SELECT replyId, postId, body, author, isDeleted FROM HW2_REPLIES WHERE isDeleted = FALSE ");
 
 	    if (hasKeyword) sb.append("AND (LOWER(body) LIKE ? OR LOWER(author) LIKE ?) ");
 	    if (hasPostId) sb.append("AND postId = ? ");
@@ -1409,7 +1421,7 @@ public class Database {
 	                        rs.getString("body"),
 	                        rs.getString("author")
 	                );
-	          
+	                r.setDeleted(rs.getBoolean("isDeleted"));
 	                out.add(r);
 	            }
 	        }
@@ -1477,24 +1489,39 @@ public class Database {
 	 */
 	public List<Post> hw2SearchPosts(String keyword, String threadFilter) throws SQLException {
 	    List<Post> out = new ArrayList<>();
-	    String kw = (keyword == null) ? "" : keyword.trim();
-	    String tf = (threadFilter == null) ? "" : threadFilter.trim();
+	    String kw = (keyword == null) ? "" : keyword.trim().toLowerCase();
+	    String tf = (threadFilter == null) ? "" : threadFilter.trim().toLowerCase();
 
-	    boolean filterByThread = !tf.isEmpty();
-	    String sql =
-	            "SELECT postId, title, body, author, thread, isDeleted "
-	          + "FROM HW2_POSTS "
-	          + "WHERE (LOWER(title) LIKE ? OR LOWER(body) LIKE ? OR LOWER(author) LIKE ? OR LOWER(thread) LIKE ?) "
-	          + (filterByThread ? "AND LOWER(thread) = ? " : "")
-	          + "ORDER BY postId";
+	    boolean hasKeyword = !kw.isEmpty();
+	    boolean hasThread = !tf.isEmpty();
 
-	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-	        String like = "%" + kw.toLowerCase() + "%";
-	        ps.setString(1, like);
-	        ps.setString(2, like);
-	        ps.setString(3, like);
-	        ps.setString(4, like);
-	        if (filterByThread) ps.setString(5, tf.toLowerCase());
+	    StringBuilder sql = new StringBuilder();
+	    sql.append("SELECT postId, title, body, author, thread, isDeleted FROM HW2_POSTS WHERE 1=1 ");
+
+	    if (hasKeyword) {
+	        sql.append("AND (LOWER(title) LIKE ? OR LOWER(body) LIKE ? OR LOWER(author) LIKE ? OR LOWER(thread) LIKE ?) ");
+	    }
+
+	    if (hasThread) {
+	        sql.append("AND LOWER(thread) = ? ");
+	    }
+
+	    sql.append("ORDER BY postId");
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+	        int idx = 1;
+
+	        if (hasKeyword) {
+	            String like = "%" + kw + "%";
+	            ps.setString(idx++, like);
+	            ps.setString(idx++, like);
+	            ps.setString(idx++, like);
+	            ps.setString(idx++, like);
+	        }
+
+	        if (hasThread) {
+	            ps.setString(idx++, tf);
+	        }
 
 	        try (ResultSet rs = ps.executeQuery()) {
 	            while (rs.next()) {
@@ -1510,6 +1537,7 @@ public class Database {
 	            }
 	        }
 	    }
+
 	    return out;
 	}
 

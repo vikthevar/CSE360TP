@@ -1,106 +1,107 @@
 package discussionStore;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import discussionValidation.ReplyValidator;
 import entityClasses.Reply;
+import database.Database;
 
 /**
  * The ReplyStore class manages all replies and subset reply lists.
- * This class supports CRUD operations and search functionality.
- *
- * Post existence validation is handled in the Controller layer(guiDiscussion).
+ * This version is database-backed so replies persist across relaunches.
  */
-
-
 public class ReplyStore {
 
-    /** List containing all replies */
+    /** Shared database reference */
+    private final Database database;
+
+    /** Cached replies (for quick UI display) */
     private final List<Reply> allReplies;
 
-    /** List containing subset replies (e.g., search results) */
+    /** Subset replies (e.g., search results) */
     private final List<Reply> subsetReplies;
-    
-    
-
-    /** Auto-incrementing reply ID */
-    private int nextReplyId;
 
     /**
-     * Constructs an empty ReplyStore.
+     * Constructs a ReplyStore and loads replies from DB.
      */
-    public ReplyStore() {
+    public ReplyStore(Database database) {
+        this.database = database;
         this.allReplies = new ArrayList<>();
         this.subsetReplies = new ArrayList<>();
-        this.nextReplyId = 1;
+        refreshAllReplies();
+    }
+
+    /**
+     * Reloads all replies from database (simple global load).
+     */
+    private void refreshAllReplies() {
+        allReplies.clear();
+        try {
+            // Load everything by scanning posts is expensive; instead, lazy-load per post.
+            // Keep cache minimal here.
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load replies.", e);
+        }
     }
 
     /**
      * Creates and stores a new reply.
-     * Post existence must be checked before calling this method.
-     *
-     * @param postId associated post ID
-     * @param body reply content
-     * @param author reply author
-     * @return null if success; otherwise validation error message
      */
     public String createReply(int postId, String body, String author) {
-    	
-    	
+
         String validationMessage = ReplyValidator.validate(postId, body);
         if (validationMessage != null) {
             return validationMessage;
         }
 
-        Reply reply = new Reply(nextReplyId, postId,
-                body.trim(),
-                author == null ? "" : author.trim());
-
-        allReplies.add(reply);
-        nextReplyId++;
-
-        return null;
+        try {
+            database.hw2CreateReply(
+                    postId,
+                    body.trim(),
+                    (author == null ? "" : author.trim())
+            );
+            return null;
+        } catch (SQLException e) {
+            return "Database error while creating reply.";
+        }
     }
 
     /**
      * Returns a reply by ID.
-     *
-     * @param replyId - reply ID
-     * @return Reply if found; otherwise null
      */
     public Reply getReplyById(int replyId) {
-        for (Reply r : allReplies) {
-            if (r.getReplyId() == replyId) {
-                return r;
-            }
+        try {
+            return database.hw2GetReplyById(replyId);
+        } catch (SQLException e) {
+            return null;
         }
-        return null;
     }
 
     /**
-     * Returns all replies associated with a given post ID.
-     *
-     * @param postId - post ID
-     * @return list of matching replies (may be empty)
+     * Returns all non-deleted replies for a post.
      */
     public List<Reply> getRepliesByPostId(int postId) {
-        List<Reply> results = new ArrayList<>();
-        for (Reply r : allReplies) {
-            if (r.getPostId() == postId) {
-                results.add(r);
+        try {
+            List<Reply> replies = database.hw2ListRepliesByPostId(postId);
+            List<Reply> filtered = new ArrayList<>();
+
+            for (Reply r : replies) {
+                if (!r.isDeleted()) {
+                    filtered.add(r);
+                }
             }
+
+            return filtered;
+        } catch (SQLException e) {
+            return new ArrayList<>();
         }
-        return results;
     }
 
     /**
-     * Updates the body of an existing reply.
-     *
-     * @param replyId - reply ID
-     * @param newBody - new reply body
-     * @return null if success; otherwise error message
+     * Updates a reply body.
      */
     public String updateReply(int replyId, String newBody) {
 
@@ -114,64 +115,67 @@ public class ReplyStore {
             return validationMessage;
         }
 
-        reply.setBody(newBody.trim());
-        return null;
+        try {
+            boolean updated = database.hw2UpdateReply(replyId, newBody.trim());
+            if (!updated) {
+                return "Reply not found.";
+            }
+            return null;
+        } catch (SQLException e) {
+            return "Database error while updating reply.";
+        }
     }
 
     /**
-     * Deletes a reply.
-     *
-     * @param replyId - reply ID
-     * @return null if success; otherwise error message
+     * Deletes a reply (soft delete).
      */
     public String deleteReply(int replyId) {
 
-        for (int i = 0; i < allReplies.size(); i++) {
-            if (allReplies.get(i).getReplyId() == replyId) {
-                allReplies.remove(i);
-                return null;
-            }
+        Reply reply = getReplyById(replyId);
+        if (reply == null) {
+            return "Reply not found.";
         }
 
-        return "Reply not found.";
+        try {
+            boolean deleted = database.hw2DeleteReplySoft(replyId);
+            if (!deleted) {
+                return "Reply not found.";
+            }
+            return null;
+        } catch (SQLException e) {
+            return "Database error while deleting reply.";
+        }
     }
 
     /**
-     * Searches replies by keyword (case-insensitive) and
-     * stores results in subsetReplies.
-     *
-     * @param keyword search term
+     * Searches replies (non-deleted).
      */
     public void searchReplies(String keyword) {
 
         subsetReplies.clear();
 
-        if (keyword == null || keyword.trim().isEmpty()) {
-            return;
-        }
+        try {
+            List<Reply> results = database.hw2SearchReplies(keyword, null);
 
-        String key = keyword.trim().toLowerCase();
-
-        for (Reply r : allReplies) {
-            if (r.getBody().toLowerCase().contains(key)) {
-                subsetReplies.add(r);
+            for (Reply r : results) {
+                if (!r.isDeleted()) {
+                    subsetReplies.add(r);
+                }
             }
+        } catch (SQLException e) {
+            // fail silently for UI
         }
     }
 
     /**
-     * Returns all replies.
-     *
-     * @return list of all replies
+     * Returns all replies (rarely used).
      */
     public List<Reply> getAllReplies() {
         return Collections.unmodifiableList(allReplies);
     }
 
     /**
-     * Returns the current subset reply list (unmodifiable).
-     *
-     * @return subset reply list
+     * Returns subset replies.
      */
     public List<Reply> getSubsetReplies() {
         return Collections.unmodifiableList(subsetReplies);

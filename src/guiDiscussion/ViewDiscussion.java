@@ -6,27 +6,28 @@ import entityClasses.Post;
 import entityClasses.Reply;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 /*******
  * <p> Title: ViewDiscussion Class. </p>
  * 
- * <p> Description: The Java/FX-based HW2 Discussion Page. This class provides the JavaFX GUI widgets
- * used to demonstrate CRUD and input validation for Posts and Replies, including subset list results.</p>
+ * <p> Description: The Java/FX-based HW2 Discussion Page. This class provides the
+ * JavaFX GUI widgets used to demonstrate CRUD and input validation for Posts and Replies,
+ * including subset list results. Status feedback is shown inline on the page.</p>
  * 
  * @author Vikram Thevar
  *
  */
-
 public class ViewDiscussion {
 
 	/*-*******************************************************************************************
@@ -35,23 +36,20 @@ public class ViewDiscussion {
 	
 	*/
 
-	// These are the application values required by the user interface
-	
 	private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
-	private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT;
-
-	// Alerts used by this page
-	protected static Alert alertError = new Alert(AlertType.INFORMATION);
-	protected static Alert alertInfo = new Alert(AlertType.INFORMATION);
+	private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT + 120;
 
 	// GUI Area 1: Title
 	protected static Label label_PageTitle = new Label("HW2 Discussion Page");
 
-	// Separators
-	private static Line line_Separator1 = new Line(20, 55, width-20, 55);
-	private static Line line_Separator2 = new Line(20, 285, width-20, 285);
-	private static Line line_Separator3 = new Line(20, 515, width-20, 515);
+	// Inline status label
+	protected static Label label_Status = new Label("");
 
+	// Separators
+	private static Line line_Separator1 = new Line(40, 60, width - 40, 60);
+	private static Line line_Separator2 = new Line(40, 355, width - 40, 355);
+	private static Line line_Separator3 = new Line(40, 610, width - 40, 610);
+	
 	// GUI Area 2: Post CRUD + Search
 	protected static Label label_PostSection = new Label("Posts");
 
@@ -69,15 +67,19 @@ public class ViewDiscussion {
 
 	protected static Button button_CreatePost = new Button("Create Post");
 
-	protected static Label label_SearchPosts = new Label("Search Posts:");
+	protected static Label label_SearchPosts = new Label("Search Keyword:");
 	protected static TextField text_SearchPosts = new TextField();
+
+	protected static Label label_SearchThread = new Label("Search Thread:");
+	protected static TextField text_SearchThread = new TextField();
+
 	protected static Button button_SearchPosts = new Button("Search");
 
 	protected static Label label_DeletePost = new Label("Delete Post by ID:");
 	protected static TextField text_DeletePostId = new TextField();
 	protected static Button button_DeletePost = new Button("Delete Post");
 
-	// GUI Area 3: Post lists (all + subset)
+	// GUI Area 3: Post lists
 	protected static Label label_AllPosts = new Label("All Posts:");
 	protected static TextArea area_AllPosts = new TextArea();
 
@@ -102,9 +104,13 @@ public class ViewDiscussion {
 	protected static TextField text_ViewRepliesPostId = new TextField();
 	protected static Button button_ViewReplies = new Button("View Replies");
 
+	protected static Label label_DeleteReply = new Label("Delete Reply ID:");
+	protected static TextField text_DeleteReplyId = new TextField();
+	protected static Button button_DeleteReply = new Button("Delete Reply");
+
 	protected static TextArea area_RepliesForPost = new TextArea();
 
-	// These attributes are used to configure the page
+	// Page configuration
 	private static ViewDiscussion theView;
 
 	protected static Stage theStage;
@@ -133,6 +139,7 @@ public class ViewDiscussion {
 
 		updatePostListDisplays();
 		area_RepliesForPost.setText("");
+		setStatus("Discussion page ready.", false);
 
 		theStage.setTitle("CSE 360 HW2: Discussion");
 		theStage.setScene(theDiscussionScene);
@@ -147,86 +154,86 @@ public class ViewDiscussion {
 	 */
 	private ViewDiscussion() {
 
-		// Create the Pane for the list of widgets and the Scene for the window
 		theRootPane = new Pane();
 		theDiscussionScene = new Scene(theRootPane, width, height);
-
-		// Configure alerts
-		alertError.setTitle("*** Error ***");
-		alertError.setHeaderText(null);
-
-		alertInfo.setTitle("Information");
-		alertInfo.setHeaderText(null);
 
 		// GUI Area 1: Title
 		setupLabelUI(label_PageTitle, "Arial", 26, width, Pos.CENTER, 0, 10);
 
+		// Status label
+		setupLabelUI(label_Status, "Arial", 13, width - 80, Pos.BASELINE_LEFT, 40, 68);
+		label_Status.setTextFill(Color.DARKGREEN);
+
 		// GUI Area 2: Posts
-		setupLabelUI(label_PostSection, "Arial", 20, 200, Pos.BASELINE_LEFT, 20, 70);
+		setupLabelUI(label_PostSection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 95);
 
-		setupLabelUI(label_PostTitle, "Arial", 14, 80, Pos.BASELINE_LEFT, 20, 105);
-		setupTextUI(text_PostTitle, "Arial", 14, 300, Pos.BASELINE_LEFT, 120, 100, true);
+		setupLabelUI(label_PostTitle, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 135);
+		setupTextUI(text_PostTitle, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 130, true);
 
-		setupLabelUI(label_PostBody, "Arial", 14, 80, Pos.BASELINE_LEFT, 20, 140);
-		setupTextUI(text_PostBody, "Arial", 14, 300, Pos.BASELINE_LEFT, 120, 135, true);
+		setupLabelUI(label_PostBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 175);
+		setupTextUI(text_PostBody, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 170, true);
 
-		setupLabelUI(label_PostAuthor, "Arial", 14, 80, Pos.BASELINE_LEFT, 20, 175);
-		setupTextUI(text_PostAuthor, "Arial", 14, 300, Pos.BASELINE_LEFT, 120, 170, true);
+		setupLabelUI(label_PostAuthor, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 215);
+		setupTextUI(text_PostAuthor, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 210, true);
 
-		setupLabelUI(label_PostThread, "Arial", 14, 130, Pos.BASELINE_LEFT, 20, 210);
-		setupTextUI(text_PostThread, "Arial", 14, 300, Pos.BASELINE_LEFT, 150, 205, true);
+		setupLabelUI(label_PostThread, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 255);
+		setupTextUI(text_PostThread, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 250, true);
 
-		setupButtonUI(button_CreatePost, "Dialog", 14, 140, Pos.CENTER, 470, 135);
-		button_CreatePost.setOnAction((_) -> { ControllerDiscussion.performCreatePost(); });
+		setupButtonUI(button_CreatePost, "Dialog", 14, 150, Pos.CENTER, 560, 170);		
+		button_CreatePost.setOnAction((_) -> performCreatePostUI());
 
-		// Search + Delete
-		setupLabelUI(label_SearchPosts, "Arial", 14, 100, Pos.BASELINE_LEFT, 20, 245);
-		setupTextUI(text_SearchPosts, "Arial", 14, 220, Pos.BASELINE_LEFT, 120, 240, true);
-		setupButtonUI(button_SearchPosts, "Dialog", 14, 100, Pos.CENTER, 350, 240);
-		button_SearchPosts.setOnAction((_) -> { ControllerDiscussion.performSearchPosts(); });
+		setupLabelUI(label_SearchPosts, "Arial", 14, 120, Pos.BASELINE_LEFT, 40, 300);
+		setupTextUI(text_SearchPosts, "Arial", 14, 180, Pos.BASELINE_LEFT, 160, 295, true);
 
-		setupLabelUI(label_DeletePost, "Arial", 14, 140, Pos.BASELINE_LEFT, 470, 245);
-		setupTextUI(text_DeletePostId, "Arial", 14, 70, Pos.BASELINE_LEFT, 610, 240, true);
-		setupButtonUI(button_DeletePost, "Dialog", 14, 120, Pos.CENTER, 690, 240);
-		button_DeletePost.setOnAction((_) -> { ControllerDiscussion.performDeletePost(); });
+		setupLabelUI(label_SearchThread, "Arial", 14, 120, Pos.BASELINE_LEFT, 370, 300);
+		setupTextUI(text_SearchThread, "Arial", 14, 180, Pos.BASELINE_LEFT, 500, 295, true);
+
+		setupButtonUI(button_SearchPosts, "Dialog", 14, 100, Pos.CENTER, 710, 295);
+		button_SearchPosts.setOnAction((_) -> performSearchPostsUI());
+
+		setupLabelUI(label_DeletePost, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 335);
+		setupTextUI(text_DeletePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 185, 330, true);
+		setupButtonUI(button_DeletePost, "Dialog", 14, 130, Pos.CENTER, 285, 330);
+		button_DeletePost.setOnAction((_) -> performDeletePostUI());
 
 		// GUI Area 3: Post list displays
-		setupLabelUI(label_AllPosts, "Arial", 14, 200, Pos.BASELINE_LEFT, 20, 295);
-		setupTextAreaUI(area_AllPosts, "Arial", 12, 360, 190, 20, 320);
+		setupLabelUI(label_AllPosts, "Arial", 14, 220, Pos.BASELINE_LEFT, 40, 370);
+		setupTextAreaUI(area_AllPosts, "Arial", 12, 430, 200, 40, 395);
 
-		setupLabelUI(label_SubsetPosts, "Arial", 14, 260, Pos.BASELINE_LEFT, 410, 295);
-		setupTextAreaUI(area_SubsetPosts, "Arial", 12, 360, 190, 410, 320);
+		setupLabelUI(label_SubsetPosts, "Arial", 14, 260, Pos.BASELINE_LEFT, 500, 370);
+		setupTextAreaUI(area_SubsetPosts, "Arial", 12, 430, 200, 500, 395);
 
 		// GUI Area 4: Replies
-		setupLabelUI(label_ReplySection, "Arial", 20, 200, Pos.BASELINE_LEFT, 20, 525);
+		setupLabelUI(label_ReplySection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 625);
 
-		// Row 1: Post ID + Author
-		setupLabelUI(label_ReplyPostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 20, 560);
-		setupTextUI(text_ReplyPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 165, 555, true);
+		setupLabelUI(label_ReplyPostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 665);
+		setupTextUI(text_ReplyPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 660, true);
 
-		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 270, 560);
-		setupTextUI(text_ReplyAuthor, "Arial", 14, 200, Pos.BASELINE_LEFT, 360, 555, true);
+		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 290, 665);
+		setupTextUI(text_ReplyAuthor, "Arial", 14, 220, Pos.BASELINE_LEFT, 390, 660, true);
 
-		// Row 2: Reply Body 
-		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 20, 595);
-		setupTextUI(text_ReplyBody, "Arial", 14, 540, Pos.BASELINE_LEFT, 165, 590, true);
+		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 705);
+		setupTextUI(text_ReplyBody, "Arial", 14, 520, Pos.BASELINE_LEFT, 170, 700, true);
 
-		// Row 3: Actions (Create + View)
-		setupButtonUI(button_CreateReply, "Dialog", 14, 140, Pos.CENTER, 165, 625);
-		button_CreateReply.setOnAction((_) -> { ControllerDiscussion.performCreateReply(); });
+		setupButtonUI(button_CreateReply, "Dialog", 14, 150, Pos.CENTER, 170, 740);
+		button_CreateReply.setOnAction((_) -> performCreateReplyUI());
 
-		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 170, Pos.BASELINE_LEFT, 340, 630);
-		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 510, 625, true);
+		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 170, Pos.BASELINE_LEFT, 360, 745);
+		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 535, 740, true);
 
-		setupButtonUI(button_ViewReplies, "Dialog", 14, 140, Pos.CENTER, 610, 625);
-		button_ViewReplies.setOnAction((_) -> { performViewRepliesForPost(); });
+		setupButtonUI(button_ViewReplies, "Dialog", 14, 150, Pos.CENTER, 645, 740);
+		button_ViewReplies.setOnAction((_) -> performViewRepliesForPost());
 
-		// Output area: taller + readable
-		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 750, 135, 20, 660);
+		setupLabelUI(label_DeleteReply, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 775);
+		setupTextUI(text_DeleteReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 770, true);
 
-		// Place all widget items into the Root Pane's list of children
+		setupButtonUI(button_DeleteReply, "Dialog", 14, 150, Pos.CENTER, 290, 770);
+		button_DeleteReply.setOnAction((_) -> performDeleteReplyUI());
+
+		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 890, 120, 40, 810);
+
 		theRootPane.getChildren().addAll(
-				label_PageTitle, line_Separator1,
+				label_PageTitle, line_Separator1, label_Status,
 
 				label_PostSection,
 				label_PostTitle, text_PostTitle,
@@ -234,7 +241,9 @@ public class ViewDiscussion {
 				label_PostAuthor, text_PostAuthor,
 				label_PostThread, text_PostThread,
 				button_CreatePost,
-				label_SearchPosts, text_SearchPosts, button_SearchPosts,
+				label_SearchPosts, text_SearchPosts,
+				label_SearchThread, text_SearchThread,
+				button_SearchPosts,
 				label_DeletePost, text_DeletePostId, button_DeletePost,
 
 				line_Separator2,
@@ -248,19 +257,17 @@ public class ViewDiscussion {
 				label_ReplyAuthor, text_ReplyAuthor,
 				button_CreateReply,
 				label_ViewRepliesForPost, text_ViewRepliesPostId, button_ViewReplies,
+				label_DeleteReply, text_DeleteReplyId, button_DeleteReply,
 				area_RepliesForPost
-				);
+		);
 	}
 
 	/*-*******************************************************************************************
 
-	Methods called by Controller
+	Methods called by Controller / UI refresh
 	
 	*/
 
-	/**
-	 * Updates the "All Posts" and "Subset Posts" displays.
-	 */
 	protected static void updatePostListDisplays() {
 		List<Post> all = ControllerDiscussion.getPostStore().getAllPosts();
 		List<Post> subset = ControllerDiscussion.getPostStore().getSubsetPosts();
@@ -269,61 +276,187 @@ public class ViewDiscussion {
 		area_SubsetPosts.setText(formatPosts(subset));
 	}
 
-	/**
-	 * Placeholder for controller calls (kept for consistency).
-	 */
 	protected static void updateReplyListDisplays() {
-		// Replies are displayed when the user presses "View Replies".
+		// Replies are shown in the replies text area for a selected post.
 	}
 
 	/*-*******************************************************************************************
 
-	Local helper actions
+	UI action handlers
 	
 	*/
 
-	private static void performViewRepliesForPost() {
+	private static void performCreatePostUI() {
+		String err = ControllerDiscussion.getPostStore().createPost(
+				text_PostTitle.getText(),
+				text_PostBody.getText(),
+				text_PostAuthor.getText(),
+				text_PostThread.getText()
+		);
 
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		text_PostTitle.setText("");
+		text_PostBody.setText("");
+		text_PostThread.setText("");
+
+		updatePostListDisplays();
+		setStatus("Post created successfully.", false);
+	}
+
+	private static void performSearchPostsUI() {
+		ControllerDiscussion.getPostStore().searchPosts(
+				text_SearchPosts.getText(),
+				text_SearchThread.getText()
+		);
+		updatePostListDisplays();
+		setStatus("Post search completed.", false);
+	}
+
+	private static void performDeletePostUI() {
+		String raw = text_DeletePostId.getText();
+
+		int postId;
+		try {
+			postId = Integer.parseInt(raw.trim());
+		} catch (Exception e) {
+			setStatus("Invalid post ID.", true);
+			return;
+		}
+
+		Post post = ControllerDiscussion.getPostStore().getPostById(postId);
+		if (post == null) {
+			setStatus("Post not found.", true);
+			return;
+		}
+
+		Alert confirmDelete = new Alert(Alert.AlertType.CONFIRMATION);
+		confirmDelete.setTitle("Confirm Delete");
+		confirmDelete.setHeaderText("Delete Post " + postId + "?");
+		confirmDelete.setContentText("Are you sure you want to delete this post? Replies will remain visible.");
+
+		ButtonType result = confirmDelete.showAndWait().orElse(ButtonType.CANCEL);
+
+		if (result != ButtonType.OK) {
+			setStatus("Delete cancelled.", false);
+			return;
+		}
+
+		String err = ControllerDiscussion.getPostStore().deletePost(postId);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+
+		String replyViewId = text_ViewRepliesPostId.getText();
+		if (replyViewId != null && !replyViewId.trim().isEmpty()) {
+			try {
+				int viewedPostId = Integer.parseInt(replyViewId.trim());
+				if (viewedPostId == postId) {
+					area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(postId));
+				}
+			} catch (Exception e) {
+				// Best-effort refresh only
+			}
+		}
+
+		setStatus("Post deleted successfully.", false);
+	}
+	
+	private static void performCreateReplyUI() {
+		int postId;
+		try {
+			postId = Integer.parseInt(text_ReplyPostId.getText().trim());
+		} catch (Exception e) {
+			setStatus("Invalid Post ID.", true);
+			return;
+		}
+
+		Post p = ControllerDiscussion.getPostStore().getPostById(postId);
+		if (p == null) {
+			setStatus("Post ID does not exist.", true);
+			return;
+		}
+
+		String err = ControllerDiscussion.getReplyStore().createReply(
+				postId,
+				text_ReplyBody.getText(),
+				text_ReplyAuthor.getText()
+		);
+
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		text_ReplyBody.setText("");
+		text_ReplyAuthor.setText("");
+
+		area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(postId));
+		setStatus("Reply created successfully.", false);
+	}
+
+	private static void performViewRepliesForPost() {
 		String raw = text_ViewRepliesPostId.getText();
 
 		int postId;
 		try {
 			postId = Integer.parseInt(raw.trim());
 		} catch (Exception e) {
-			alertError.setContentText("Invalid post ID.");
-			alertError.showAndWait();
+			setStatus("Invalid post ID.", true);
 			return;
 		}
-		
+
 		Post p = ControllerDiscussion.getPostStore().getPostById(postId);
-	    if (p == null) {
-	        alertError.setContentText("Post ID does not exist.");
-	        alertError.showAndWait();
-	        return;
-	    }
+		if (p == null) {
+			setStatus("Post ID does not exist.", true);
+			return;
+		}
 
-		List<Reply> replies = ControllerDiscussion.getReplyStore().getRepliesByPostId(postId);
+		area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(postId));
+		setStatus("Replies loaded.", false);
+	}
 
-		boolean postDeleted = (p != null && p.isDeleted());
+	private static void performDeleteReplyUI() {
+		String rawReplyId = text_DeleteReplyId.getText();
 
-		StringBuilder sb = new StringBuilder();
+		int replyId;
+		try {
+			replyId = Integer.parseInt(rawReplyId.trim());
+		} catch (Exception e) {
+			setStatus("Invalid reply ID.", true);
+			return;
+		}
 
-		if (replies.isEmpty()) {
-			sb.append("No replies found.\n");
-		} else {
-			for (Reply r : replies) {
-				sb.append("Reply ").append(r.getReplyId()).append(" (Post ").append(r.getPostId()).append(")\n");
-				sb.append("Author: ").append(r.getAuthor()).append("\n");
-				if (postDeleted) {
-					sb.append("Original post has been deleted.\n");
-				}
-				sb.append(r.getBody()).append("\n");
-				sb.append("----\n");
+		String err = ControllerDiscussion.getReplyStore().deleteReply(replyId);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		String rawViewedPostId = text_ViewRepliesPostId.getText();
+		if (rawViewedPostId != null && !rawViewedPostId.trim().isEmpty()) {
+			try {
+				int viewedPostId = Integer.parseInt(rawViewedPostId.trim());
+				area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(viewedPostId));
+			} catch (Exception e) {
+				// Ignore refresh failure here.
 			}
 		}
 
-		area_RepliesForPost.setText(sb.toString());
+		setStatus("Reply deleted successfully.", false);
 	}
+
+	/*-*******************************************************************************************
+
+	Local helpers
+	
+	*/
 
 	private static String formatPosts(List<Post> posts) {
 		if (posts == null || posts.isEmpty()) return "No posts found.\n";
@@ -346,9 +479,18 @@ public class ViewDiscussion {
 		return sb.toString();
 	}
 
+	private static void setStatus(String message, boolean isError) {
+		label_Status.setText(message);
+		if (isError) {
+			label_Status.setTextFill(Color.DARKRED);
+		} else {
+			label_Status.setTextFill(Color.DARKGREEN);
+		}
+	}
+
 	/*-*******************************************************************************************
 
-	Helper methods used to minimize the number of lines of code needed above
+	Helper methods used to minimize code above
 	
 	*/
 
