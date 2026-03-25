@@ -151,6 +151,11 @@ public class Post {
         this.isDeleted = true;
     }
     
+    /**
+     * Sets the deletion state of the post.
+     *
+     * @param deleted true if the post should be marked deleted; false otherwise
+     */
     public void setDeleted(boolean deleted) {
         this.isDeleted = deleted;
     }

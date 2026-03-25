@@ -37,7 +37,7 @@ public class ViewDiscussion {
 	*/
 
 	private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
-	private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT + 120;
+	private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT + 140;
 
 	// GUI Area 1: Title
 	protected static Label label_PageTitle = new Label("HW2 Discussion Page");
@@ -47,8 +47,8 @@ public class ViewDiscussion {
 
 	// Separators
 	private static Line line_Separator1 = new Line(40, 60, width - 40, 60);
-	private static Line line_Separator2 = new Line(40, 355, width - 40, 355);
-	private static Line line_Separator3 = new Line(40, 610, width - 40, 610);
+	private static Line line_Separator2 = new Line(40, 390, width - 40, 390);
+	private static Line line_Separator3 = new Line(40, 645, width - 40, 645);
 	
 	// GUI Area 2: Post CRUD + Search
 	protected static Label label_PostSection = new Label("Posts");
@@ -79,6 +79,10 @@ public class ViewDiscussion {
 	protected static TextField text_DeletePostId = new TextField();
 	protected static Button button_DeletePost = new Button("Delete Post");
 
+	protected static Label label_UpdatePostId = new Label("Update Post ID:");
+	protected static TextField text_UpdatePostId = new TextField();
+	protected static Button button_UpdatePost = new Button("Update Post");
+
 	// GUI Area 3: Post lists
 	protected static Label label_AllPosts = new Label("All Posts:");
 	protected static TextArea area_AllPosts = new TextArea();
@@ -108,6 +112,10 @@ public class ViewDiscussion {
 	protected static TextField text_DeleteReplyId = new TextField();
 	protected static Button button_DeleteReply = new Button("Delete Reply");
 
+	protected static Label label_UpdateReplyId = new Label("Update Reply ID:");
+	protected static TextField text_UpdateReplyId = new TextField();
+	protected static Button button_UpdateReply = new Button("Update Reply");
+
 	protected static TextArea area_RepliesForPost = new TextArea();
 
 	// Page configuration
@@ -123,14 +131,6 @@ public class ViewDiscussion {
 	
 	*/
 
-	/**********
-	 * <p> Method: displayDiscussion(Stage ps) </p>
-	 * 
-	 * <p> Description: This method is the single entry point from outside this package to cause
-	 * the HW2 Discussion page to be displayed.</p>
-	 * 
-	 * @param ps specifies the JavaFX Stage to be used for this GUI and its methods
-	 */
 	public static void displayDiscussion(Stage ps) {
 
 		theStage = ps;
@@ -146,12 +146,6 @@ public class ViewDiscussion {
 		theStage.show();
 	}
 
-	/**********
-	 * <p> Method: ViewDiscussion() </p>
-	 * 
-	 * <p> Description: Initializes all static aspects of the GUI widgets and registers event
-	 * handlers for buttons.</p>
-	 */
 	private ViewDiscussion() {
 
 		theRootPane = new Pane();
@@ -196,41 +190,52 @@ public class ViewDiscussion {
 		setupButtonUI(button_DeletePost, "Dialog", 14, 130, Pos.CENTER, 285, 330);
 		button_DeletePost.setOnAction((_) -> performDeletePostUI());
 
-		// GUI Area 3: Post list displays
-		setupLabelUI(label_AllPosts, "Arial", 14, 220, Pos.BASELINE_LEFT, 40, 370);
-		setupTextAreaUI(area_AllPosts, "Arial", 12, 430, 200, 40, 395);
+		setupLabelUI(label_UpdatePostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 430, 335);
+		setupTextUI(text_UpdatePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 575, 330, true);
+		setupButtonUI(button_UpdatePost, "Dialog", 14, 130, Pos.CENTER, 675, 330);
+		button_UpdatePost.setOnAction((_) -> performUpdatePostUI());
 
-		setupLabelUI(label_SubsetPosts, "Arial", 14, 260, Pos.BASELINE_LEFT, 500, 370);
-		setupTextAreaUI(area_SubsetPosts, "Arial", 12, 430, 200, 500, 395);
+		// GUI Area 3: Post list displays
+		setupLabelUI(label_AllPosts, "Arial", 14, 220, Pos.BASELINE_LEFT, 40, 405);
+		setupTextAreaUI(area_AllPosts, "Arial", 12, 430, 200, 40, 430);
+
+		setupLabelUI(label_SubsetPosts, "Arial", 14, 260, Pos.BASELINE_LEFT, 500, 405);
+		setupTextAreaUI(area_SubsetPosts, "Arial", 12, 430, 200, 500, 430);
 
 		// GUI Area 4: Replies
-		setupLabelUI(label_ReplySection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 625);
+		setupLabelUI(label_ReplySection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 660);
 
-		setupLabelUI(label_ReplyPostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 665);
-		setupTextUI(text_ReplyPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 660, true);
+		setupLabelUI(label_ReplyPostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 700);
+		setupTextUI(text_ReplyPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 695, true);
 
-		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 290, 665);
-		setupTextUI(text_ReplyAuthor, "Arial", 14, 220, Pos.BASELINE_LEFT, 390, 660, true);
+		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 290, 700);
+		setupTextUI(text_ReplyAuthor, "Arial", 14, 220, Pos.BASELINE_LEFT, 390, 695, true);
 
-		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 705);
-		setupTextUI(text_ReplyBody, "Arial", 14, 520, Pos.BASELINE_LEFT, 170, 700, true);
+		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 740);
+		setupTextUI(text_ReplyBody, "Arial", 14, 520, Pos.BASELINE_LEFT, 170, 735, true);
 
-		setupButtonUI(button_CreateReply, "Dialog", 14, 150, Pos.CENTER, 170, 740);
+		setupButtonUI(button_CreateReply, "Dialog", 14, 150, Pos.CENTER, 170, 775);
 		button_CreateReply.setOnAction((_) -> performCreateReplyUI());
 
-		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 170, Pos.BASELINE_LEFT, 360, 745);
-		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 535, 740, true);
+		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 170, Pos.BASELINE_LEFT, 360, 780);
+		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 535, 775, true);
 
-		setupButtonUI(button_ViewReplies, "Dialog", 14, 150, Pos.CENTER, 645, 740);
+		setupButtonUI(button_ViewReplies, "Dialog", 14, 150, Pos.CENTER, 645, 775);
 		button_ViewReplies.setOnAction((_) -> performViewRepliesForPost());
 
-		setupLabelUI(label_DeleteReply, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 775);
-		setupTextUI(text_DeleteReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 770, true);
+		setupLabelUI(label_DeleteReply, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 815);
+		setupTextUI(text_DeleteReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 810, true);
 
-		setupButtonUI(button_DeleteReply, "Dialog", 14, 150, Pos.CENTER, 290, 770);
+		setupButtonUI(button_DeleteReply, "Dialog", 14, 150, Pos.CENTER, 290, 810);
 		button_DeleteReply.setOnAction((_) -> performDeleteReplyUI());
 
-		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 890, 120, 40, 810);
+		setupLabelUI(label_UpdateReplyId, "Arial", 14, 130, Pos.BASELINE_LEFT, 470, 815);
+		setupTextUI(text_UpdateReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 610, 810, true);
+
+		setupButtonUI(button_UpdateReply, "Dialog", 14, 150, Pos.CENTER, 730, 810);
+		button_UpdateReply.setOnAction((_) -> performUpdateReplyUI());
+
+		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 890, 120, 40, 845);
 
 		theRootPane.getChildren().addAll(
 				label_PageTitle, line_Separator1, label_Status,
@@ -245,6 +250,7 @@ public class ViewDiscussion {
 				label_SearchThread, text_SearchThread,
 				button_SearchPosts,
 				label_DeletePost, text_DeletePostId, button_DeletePost,
+				label_UpdatePostId, text_UpdatePostId, button_UpdatePost,
 
 				line_Separator2,
 				label_AllPosts, area_AllPosts,
@@ -258,6 +264,7 @@ public class ViewDiscussion {
 				button_CreateReply,
 				label_ViewRepliesForPost, text_ViewRepliesPostId, button_ViewReplies,
 				label_DeleteReply, text_DeleteReplyId, button_DeleteReply,
+				label_UpdateReplyId, text_UpdateReplyId, button_UpdateReply,
 				area_RepliesForPost
 		);
 	}
@@ -367,6 +374,30 @@ public class ViewDiscussion {
 
 		setStatus("Post deleted successfully.", false);
 	}
+
+	private static void performUpdatePostUI() {
+		String rawPostId = text_UpdatePostId.getText();
+
+		int postId;
+		try {
+			postId = Integer.parseInt(rawPostId.trim());
+		} catch (Exception e) {
+			setStatus("Invalid post ID.", true);
+			return;
+		}
+
+		String newTitle = text_PostTitle.getText();
+		String newBody = text_PostBody.getText();
+
+		String err = ControllerDiscussion.getPostStore().updatePost(postId, newTitle, newBody);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+		setStatus("Post updated successfully.", false);
+	}
 	
 	private static void performCreateReplyUI() {
 		int postId;
@@ -433,23 +464,56 @@ public class ViewDiscussion {
 			return;
 		}
 
+		Reply reply = ControllerDiscussion.getReplyStore().getReplyById(replyId);
+		if (reply == null || reply.isDeleted()) {
+			setStatus("Reply not found.", true);
+			return;
+		}
+
+		int postId = reply.getPostId();
+
 		String err = ControllerDiscussion.getReplyStore().deleteReply(replyId);
 		if (err != null) {
 			setStatus(err, true);
 			return;
 		}
 
-		String rawViewedPostId = text_ViewRepliesPostId.getText();
-		if (rawViewedPostId != null && !rawViewedPostId.trim().isEmpty()) {
-			try {
-				int viewedPostId = Integer.parseInt(rawViewedPostId.trim());
-				area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(viewedPostId));
-			} catch (Exception e) {
-				// Ignore refresh failure here.
-			}
-		}
+		area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(postId));
+		text_ViewRepliesPostId.setText(String.valueOf(postId));
 
 		setStatus("Reply deleted successfully.", false);
+	}
+
+	private static void performUpdateReplyUI() {
+		String rawReplyId = text_UpdateReplyId.getText();
+
+		int replyId;
+		try {
+			replyId = Integer.parseInt(rawReplyId.trim());
+		} catch (Exception e) {
+			setStatus("Invalid reply ID.", true);
+			return;
+		}
+
+		Reply reply = ControllerDiscussion.getReplyStore().getReplyById(replyId);
+		if (reply == null || reply.isDeleted()) {
+			setStatus("Reply not found.", true);
+			return;
+		}
+
+		String newBody = text_ReplyBody.getText();
+
+		String err = ControllerDiscussion.getReplyStore().updateReply(replyId, newBody);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		int postId = reply.getPostId();
+		area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(postId));
+		text_ViewRepliesPostId.setText(String.valueOf(postId));
+
+		setStatus("Reply updated successfully.", false);
 	}
 
 	/*-*******************************************************************************************
