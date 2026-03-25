@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 import entityClasses.User;
+import entityClasses.Post;
+import entityClasses.Reply;
 
 /*******
  * <p> Title: Database Class. </p>
@@ -124,6 +126,25 @@ public class Database {
 	    		+ "emailAddress VARCHAR(255), "
 	            + "role VARCHAR(10))";
 	    statement.execute(invitationCodesTable);
+	    
+	    String postTable = "CREATE TABLE IF NOT EXISTS HW2_POSTS ("
+				+ "postId INT AUTO_INCREMENT PRIMARY KEY, "
+				+ "title VARCHAR(200) NOT NULL, "
+				+ "body VARCHAR(5000) NOT NULL, "
+				+ "author VARCHAR(100) NOT NULL, "
+				+ "thread VARCHAR(100) NOT NULL, "
+				+ "isDeleted BOOL DEFAULT FALSE"
+				+ ")";
+		statement.execute(postTable);
+
+		String replyTable = "CREATE TABLE IF NOT EXISTS HW2_REPLIES ("
+		        + "replyId INT AUTO_INCREMENT PRIMARY KEY, "
+		        + "postId INT NOT NULL, "
+		        + "body VARCHAR(5000) NOT NULL, "
+		        + "author VARCHAR(100) NOT NULL, "
+		        + "isDeleted BOOL DEFAULT FALSE"
+		        + ")";
+		statement.execute(replyTable);
 	}
 
 
@@ -1203,6 +1224,323 @@ public class Database {
 
 	    return emailList;
 	}
+	
+	// Adding HW2 Post CRUD operations to be marked in db
+	/**
+	 * Create a new post in HW2_POSTS.
+	 * Returns the generated postId.
+	 */
+	public int hw2CreatePost(String title, String body, String author, String thread) throws SQLException {
+	    String safeThread = (thread == null || thread.trim().isEmpty()) ? "General" : thread.trim();
+
+	    String sql = "INSERT INTO HW2_POSTS (title, body, author, thread, isDeleted) VALUES (?, ?, ?, ?, FALSE)";
+	    try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+	        ps.setString(1, title);
+	        ps.setString(2, body);
+	        ps.setString(3, author);
+	        ps.setString(4, safeThread);
+	        ps.executeUpdate();
+
+	        try (ResultSet rs = ps.getGeneratedKeys()) {
+	            if (rs.next()) return rs.getInt(1);
+	        }
+	    }
+	    throw new SQLException("Failed to create post (no generated key).");
+	}
+
+	/**
+	 * Read: list all posts (including deleted, for display).
+	 */
+	public List<Post> hw2ListPosts() throws SQLException {
+	    List<Post> out = new ArrayList<>();
+	    String sql = "SELECT postId, title, body, author, thread, isDeleted FROM HW2_POSTS ORDER BY postId";
+	    try (PreparedStatement ps = connection.prepareStatement(sql);
+	         ResultSet rs = ps.executeQuery()) {
+
+	        while (rs.next()) {
+	            Post p = new Post(
+	                    rs.getInt("postId"),
+	                    rs.getString("title"),
+	                    rs.getString("body"),
+	                    rs.getString("author"),
+	                    rs.getString("thread")
+	            );
+	            p.setDeleted(rs.getBoolean("isDeleted"));
+	            out.add(p);
+	        }
+	    }
+	    return out;
+	}
+
+	
+	// Adding HW2 Reply CRUD operations to be marked in db
+	/**
+	 * Create a reply. Returns generated replyId.
+	 */
+	/**
+	 * Create a reply. Returns generated replyId.
+	 */
+	public int hw2CreateReply(int postId, String body, String author) throws SQLException {
+	    String sql = "INSERT INTO HW2_REPLIES (postId, body, author, isDeleted) VALUES (?, ?, ?, FALSE)";
+	    try (PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+	        ps.setInt(1, postId);
+	        ps.setString(2, body);
+	        ps.setString(3, author);
+	        ps.executeUpdate();
+
+	        try (ResultSet rs = ps.getGeneratedKeys()) {
+	            if (rs.next()) return rs.getInt(1);
+	        }
+	    }
+	    throw new SQLException("Failed to create reply (no generated key).");
+	}
+
+	/**
+	 * Read: list replies for a postId (includes deleted if you keep them).
+	 */
+	public List<Reply> hw2ListRepliesByPostId(int postId) throws SQLException {
+	    List<Reply> out = new ArrayList<>();
+	    String sql = "SELECT replyId, postId, body, author, isDeleted FROM HW2_REPLIES WHERE postId = ? ORDER BY replyId";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, postId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                Reply r = new Reply(
+	                        rs.getInt("replyId"),
+	                        rs.getInt("postId"),
+	                        rs.getString("body"),
+	                        rs.getString("author")
+	                );
+	                r.setDeleted(rs.getBoolean("isDeleted"));
+	                out.add(r);
+	            }
+	        }
+	    }
+	    return out;
+	}
+
+	/**
+	 * Read: get reply by id. Returns null if not found.
+	 */
+	/**
+	 * Read: get reply by id. Returns null if not found.
+	 */
+	public Reply hw2GetReplyById(int replyId) throws SQLException {
+	    String sql = "SELECT replyId, postId, body, author, isDeleted FROM HW2_REPLIES WHERE replyId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, replyId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (!rs.next()) return null;
+
+	            Reply r = new Reply(
+	                    rs.getInt("replyId"),
+	                    rs.getInt("postId"),
+	                    rs.getString("body"),
+	                    rs.getString("author")
+	            );
+	            r.setDeleted(rs.getBoolean("isDeleted"));
+	            return r;
+	        }
+	    }
+	}
+
+	/**
+	 * Update reply body. Returns true if updated.
+	 */
+	public boolean hw2UpdateReply(int replyId, String newBody) throws SQLException {
+	    String sql = "UPDATE HW2_REPLIES SET body = ? WHERE replyId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, newBody);
+	        ps.setInt(2, replyId);
+	        return ps.executeUpdate() > 0;
+	    }
+	}
+
+	/**
+	 * Delete reply (HARD delete). This matches "removes reply" in your user story.
+	 */
+	public boolean hw2DeleteReplyHard(int replyId) throws SQLException {
+	    String sql = "DELETE FROM HW2_REPLIES WHERE replyId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, replyId);
+	        return ps.executeUpdate() > 0;
+	    }
+	}
+
+	/**
+	 * Delete reply (SOFT delete) option, if you prefer symmetry with posts.
+	 */
+	public boolean hw2DeleteReplySoft(int replyId) throws SQLException {
+	    String sql = "UPDATE HW2_REPLIES SET isDeleted = TRUE WHERE replyId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, replyId);
+	        return ps.executeUpdate() > 0;
+	    }
+	}
+
+	/**
+	 * Search replies by keyword OR by postId.
+	 * - If keyword is non-empty: search reply body/author
+	 * - If postIdFilter != null: filter by postId
+	 */
+	/**
+	 * Search non-deleted replies by keyword OR by postId.
+	 * - If keyword is non-empty: search reply body/author
+	 * - If postIdFilter != null: filter by postId
+	 */
+	public List<Reply> hw2SearchReplies(String keyword, Integer postIdFilter) throws SQLException {
+	    List<Reply> out = new ArrayList<>();
+	    String kw = (keyword == null) ? "" : keyword.trim().toLowerCase();
+
+	    boolean hasKeyword = !kw.isEmpty();
+	    boolean hasPostId = (postIdFilter != null);
+
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("SELECT replyId, postId, body, author, isDeleted FROM HW2_REPLIES WHERE isDeleted = FALSE ");
+
+	    if (hasKeyword) sb.append("AND (LOWER(body) LIKE ? OR LOWER(author) LIKE ?) ");
+	    if (hasPostId) sb.append("AND postId = ? ");
+	    sb.append("ORDER BY replyId");
+
+	    try (PreparedStatement ps = connection.prepareStatement(sb.toString())) {
+	        int idx = 1;
+	        if (hasKeyword) {
+	            String like = "%" + kw + "%";
+	            ps.setString(idx++, like);
+	            ps.setString(idx++, like);
+	        }
+	        if (hasPostId) {
+	            ps.setInt(idx++, postIdFilter);
+	        }
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                Reply r = new Reply(
+	                        rs.getInt("replyId"),
+	                        rs.getInt("postId"),
+	                        rs.getString("body"),
+	                        rs.getString("author")
+	                );
+	                r.setDeleted(rs.getBoolean("isDeleted"));
+	                out.add(r);
+	            }
+	        }
+	    }
+
+	    return out;
+	}
+	
+	
+	/**
+	 * Read: get a single post by id. Returns null if not found.
+	 */
+	public Post hw2GetPostById(int postId) throws SQLException {
+	    String sql = "SELECT postId, title, body, author, thread, isDeleted FROM HW2_POSTS WHERE postId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, postId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (!rs.next()) return null;
+
+	            Post p = new Post(
+	                    rs.getInt("postId"),
+	                    rs.getString("title"),
+	                    rs.getString("body"),
+	                    rs.getString("author"),
+	                    rs.getString("thread")
+	            );
+	            p.setDeleted(rs.getBoolean("isDeleted"));
+	            return p;
+	        }
+	    }
+	}
+
+	/**
+	 * Update an existing post (title/body/thread). Returns true if updated.
+	 * (You can also allow author updates if you want—usually no.)
+	 */
+	public boolean hw2UpdatePost(int postId, String newTitle, String newBody, String newThread) throws SQLException {
+	    String safeThread = (newThread == null || newThread.trim().isEmpty()) ? "General" : newThread.trim();
+
+	    String sql = "UPDATE HW2_POSTS SET title = ?, body = ?, thread = ? WHERE postId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, newTitle);
+	        ps.setString(2, newBody);
+	        ps.setString(3, safeThread);
+	        ps.setInt(4, postId);
+	        return ps.executeUpdate() > 0;
+	    }
+	}
+
+	/**
+	 * Delete post (soft delete): marks isDeleted=true, keeps row for "Original post has been deleted."
+	 */
+	public boolean hw2SoftDeletePost(int postId) throws SQLException {
+	    String sql = "UPDATE HW2_POSTS SET isDeleted = TRUE WHERE postId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, postId);
+	        return ps.executeUpdate() > 0;
+	    }
+	}
+
+	/**
+	 * Search posts by keyword, optionally thread-filtered.
+	 * - keyword: searched in title/body/author/thread
+	 * - threadFilter: if null/blank, searches all threads
+	 */
+	public List<Post> hw2SearchPosts(String keyword, String threadFilter) throws SQLException {
+	    List<Post> out = new ArrayList<>();
+	    String kw = (keyword == null) ? "" : keyword.trim().toLowerCase();
+	    String tf = (threadFilter == null) ? "" : threadFilter.trim().toLowerCase();
+
+	    boolean hasKeyword = !kw.isEmpty();
+	    boolean hasThread = !tf.isEmpty();
+
+	    StringBuilder sql = new StringBuilder();
+	    sql.append("SELECT postId, title, body, author, thread, isDeleted FROM HW2_POSTS WHERE 1=1 ");
+
+	    if (hasKeyword) {
+	        sql.append("AND (LOWER(title) LIKE ? OR LOWER(body) LIKE ? OR LOWER(author) LIKE ? OR LOWER(thread) LIKE ?) ");
+	    }
+
+	    if (hasThread) {
+	        sql.append("AND LOWER(thread) = ? ");
+	    }
+
+	    sql.append("ORDER BY postId");
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+	        int idx = 1;
+
+	        if (hasKeyword) {
+	            String like = "%" + kw + "%";
+	            ps.setString(idx++, like);
+	            ps.setString(idx++, like);
+	            ps.setString(idx++, like);
+	            ps.setString(idx++, like);
+	        }
+
+	        if (hasThread) {
+	            ps.setString(idx++, tf);
+	        }
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                Post p = new Post(
+	                        rs.getInt("postId"),
+	                        rs.getString("title"),
+	                        rs.getString("body"),
+	                        rs.getString("author"),
+	                        rs.getString("thread")
+	                );
+	                p.setDeleted(rs.getBoolean("isDeleted"));
+	                out.add(p);
+	            }
+	        }
+	    }
+
+	    return out;
+	}
+
 
 	/*******
 	 * <p> Debugging method</p>

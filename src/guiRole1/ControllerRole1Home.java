@@ -1,6 +1,8 @@
 package guiRole1;
 
 
+import guiDiscussion.ViewDiscussion;
+
 /*******
  * <p> Title: ControllerRole1Home Class. </p>
  * 
@@ -49,6 +51,17 @@ public class ControllerRole1Home {
 	protected static void performUpdate () {
 		guiUserUpdate.ViewUserUpdate.displayUserUpdate(ViewRole1Home.theStage, ViewRole1Home.theUser);
 	}	
+	
+	/**********
+	 * <p> Method: performDiscussion() </p>
+	 * 
+	 * <p> Description: This method directs the student to the HW2 Discussion Page so the
+	 * user can create/read/update/delete posts and replies and demonstrate input validation.</p>
+	 * 
+	 */
+	protected static void performDiscussion() {
+		guiDiscussion.ViewDiscussion.displayDiscussion(ViewRole1Home.theStage);
+	}
 
 	/**********
 	 * <p> Method: performLogout() </p>

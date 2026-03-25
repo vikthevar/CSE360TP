@@ -44,10 +44,11 @@ public class ViewRole1Home {
 	// These are the widget attributes for the GUI. There are 3 areas for this GUI.
 	
 	// GUI Area 1: It informs the user about the purpose of this page, whose account is being used,
-	// and a button to allow this user to update the account settings
+	// and buttons to allow this user to update the account settings and access the discussion
 	protected static Label label_PageTitle = new Label();
 	protected static Label label_UserDetails = new Label();
 	protected static Button button_UpdateThisUser = new Button("Account Update");
+	protected static Button button_Discussion = new Button("Discussion");
 	
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
@@ -163,9 +164,11 @@ public class ViewRole1Home {
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
 		button_UpdateThisUser.setOnAction((_) -> {ControllerRole1Home.performUpdate(); });
 		
-		// GUI Area 2
-		
-			// This is a stub, so this area is empty
+		// GUI Area 2: Discussion Page Access
+		setupButtonUI(button_Discussion, "Dialog", 18, 250, Pos.CENTER, 20, 120);
+		button_Discussion.setOnAction((_) -> {
+			ControllerRole1Home.performDiscussion();
+		});
 		
 		
 		// GUI Area 3
@@ -178,9 +181,11 @@ public class ViewRole1Home {
 		// This is the end of the GUI initialization code
 		
 		// Place all of the widget items into the Root Pane's list of children
-         theRootPane.getChildren().addAll(
-			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-	        line_Separator4, button_Logout, button_Quit);
+        theRootPane.getChildren().addAll(
+        		label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
+        		button_Discussion,
+        	    line_Separator4, button_Logout, button_Quit);
+        
 }
 	
 	
