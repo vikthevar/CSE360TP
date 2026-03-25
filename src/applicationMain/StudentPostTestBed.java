@@ -8,11 +8,9 @@ public class StudentPostTestBed {
  * <p> Title: StudentPostTestAutomation Class. </p>
  * 
  * <p> Description: A Java Application used to automate test cases that validate 
- *  that the Student User Stories are implemented and function correctly.
- *  The test cases validate the behavior of post creation and updating by 
- * ensuring that all input validation rules defined in PostValidator are enforced.
- * Additionally, the thread normalization behavior is also tested to ensure correct
- * thread place for posts.
+ * that the Student User Stories are implemented and function correctly.
+ * The test cases validate the behavior of post creation, reading, updating, and deletion  
+ * by ensuring that all input validation rules defined in PostValidator and the Database are enforced.
  * </p>
  * 
  * <p> User Story Requirements Covered:
@@ -23,6 +21,16 @@ public class StudentPostTestBed {
  *   <li>R4: A student can delete their post.</li>
  * </ul>
  * </p>
+ * 
+ * <p> Requirements Covered By Test Case:
+ * <ul>
+ *   <li>R1: Test cases 1-9</li>
+ *   <li>R2: Test cases 7-9</li>
+ *   <li>R3: Test cases 1-6</li>
+ *   <li>R4: Test cases 10-11</li>
+ * </ul>
+ * </p>
+ * 
  * @author David Rowlands
  * 
  * 
