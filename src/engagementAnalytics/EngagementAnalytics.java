@@ -108,17 +108,8 @@ public class EngagementAnalytics {
         if (text == null || text.trim().isEmpty()) {
             return 0;
         }
-        // Split on whitespace and punctuation
-        String[] tokens = text.trim().split("[\\s\\p{Punct}]+");
-        int count = 0;
-        for (String token : tokens) {
-            if (!token.isEmpty()) {
-                // Split camelCase: split before uppercase letters
-                String[] camelTokens = token.split("(?=[A-Z])");
-                count += camelTokens.length;
-            }
-        }
-        return count;
+        String[] tokens = text.trim().split("\\s+");
+        return tokens.length;
     }
 
     private static double computeAveragePostGap(List<Integer> postIds) {
