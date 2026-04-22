@@ -1,6 +1,7 @@
 package guiRole1;
 
 import javafx.geometry.Pos;
+import guiStudentFeedback.ControllerStudentFeedback;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -49,13 +50,13 @@ public class ViewRole1Home {
 	protected static Label label_UserDetails = new Label();
 	protected static Button button_UpdateThisUser = new Button("Account Update");
 	protected static Button button_Discussion = new Button("Discussion");
+	protected static Button button_ViewFeedback = new Button("View Feedback");
 	
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
 
 	// GUI ARea 2: This is a stub, so there are no widgets here.  For an actual role page, this are
 	// would contain the widgets needed for the user to play the assigned role.
-	
 	
 	
 	// This is a separator and it is used to partition the GUI for various tasks
@@ -170,6 +171,12 @@ public class ViewRole1Home {
 			ControllerRole1Home.performDiscussion();
 		});
 		
+		// Feedback Page Access (Student)
+		setupButtonUI(button_ViewFeedback, "Dialog", 18, 250, Pos.CENTER, 300, 120);
+		button_ViewFeedback.setOnAction((_) -> {
+		    ControllerStudentFeedback.showStudentFeedback(theStage, theUser);
+		});
+		
 		
 		// GUI Area 3
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
@@ -183,8 +190,9 @@ public class ViewRole1Home {
 		// Place all of the widget items into the Root Pane's list of children
         theRootPane.getChildren().addAll(
         		label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-        		button_Discussion,
+        		button_Discussion, button_ViewFeedback,
         	    line_Separator4, button_Logout, button_Quit);
+   
         
 }
 	
