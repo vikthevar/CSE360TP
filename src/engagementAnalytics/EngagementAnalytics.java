@@ -94,10 +94,6 @@ public class EngagementAnalytics {
                     metric.getAverageWordsPerPost(),
                     metric.getAveragePostGap()));
         }
-
-        report.append("\n");
-        report.append("Note: average post gap is measured as the average number of other posts\n");
-        report.append("between a student\'s successive posts. It is a simple participation metric.\n");
         return report.toString();
     }
 
