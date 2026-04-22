@@ -2,8 +2,11 @@ package guiDiscussion;
 
 import java.util.List;
 
+import discussionStore.ThreadLifecycleService;
+import discussionStore.ThreadStatus;
 import entityClasses.Post;
 import entityClasses.Reply;
+import entityClasses.User;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -44,6 +47,15 @@ public class ViewDiscussion {
 
 	// Inline status label
 	protected static Label label_Status = new Label("");
+
+	// GUI Area: Thread Lifecycle (Admin Only)
+	protected static Label label_ThreadSection = new Label("Thread Lifecycle Management (Admin)");
+	protected static Label label_ThreadIdInput = new Label("Thread ID:");
+	protected static TextField text_ThreadIdInput = new TextField();
+	protected static Button button_LockThread = new Button("Lock Thread");
+	protected static Button button_OpenThread = new Button("Open Thread");
+	protected static Button button_ArchiveThread = new Button("Archive Thread");
+	protected static Label label_ThreadStatus = new Label("Status: OPEN");
 
 	// Separators
 	private static Line line_Separator1 = new Line(40, 60, width - 40, 60);
@@ -120,6 +132,7 @@ public class ViewDiscussion {
 
 	// Page configuration
 	private static ViewDiscussion theView;
+	private static User theUser;  // The current logged-in user
 
 	protected static Stage theStage;
 	private static Pane theRootPane;
@@ -131,17 +144,28 @@ public class ViewDiscussion {
 	
 	*/
 
-	public static void displayDiscussion(Stage ps) {
+	public static void displayDiscussion(Stage ps, User user) {
 
 		theStage = ps;
+		theUser = user;
 
 		if (theView == null) theView = new ViewDiscussion();
+
+		// Show/hide admin lifecycle controls based on role
+		boolean isAdmin = (user != null && user.getAdminRole());
+		label_ThreadSection.setVisible(isAdmin);
+		label_ThreadIdInput.setVisible(isAdmin);
+		text_ThreadIdInput.setVisible(isAdmin);
+		button_LockThread.setVisible(isAdmin);
+		button_OpenThread.setVisible(isAdmin);
+		button_ArchiveThread.setVisible(isAdmin);
+		label_ThreadStatus.setVisible(isAdmin);
 
 		updatePostListDisplays();
 		area_RepliesForPost.setText("");
 		setStatus("Discussion page ready.", false);
 
-		theStage.setTitle("CSE 360 HW2: Discussion");
+		theStage.setTitle("CSE 360: Discussion");
 		theStage.setScene(theDiscussionScene);
 		theStage.show();
 	}
@@ -154,12 +178,32 @@ public class ViewDiscussion {
 		// GUI Area 1: Title
 		setupLabelUI(label_PageTitle, "Arial", 26, width, Pos.CENTER, 0, 10);
 
-		// Status label
-		setupLabelUI(label_Status, "Arial", 13, width - 80, Pos.BASELINE_LEFT, 40, 68);
+		// Status label — sits ABOVE the separator so it's never covered
+		setupLabelUI(label_Status, "Arial", 13, width - 80, Pos.BASELINE_LEFT, 40, 40);
 		label_Status.setTextFill(Color.DARKGREEN);
 
-		// GUI Area 2: Posts
-		setupLabelUI(label_PostSection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 95);
+		// GUI Area: Thread Lifecycle Admin Controls (below separator at y=60)
+		setupLabelUI(label_ThreadSection, "Arial", 15, 400, Pos.BASELINE_LEFT, 40, 68);
+		label_ThreadSection.setTextFill(Color.DARKBLUE);
+
+		setupLabelUI(label_ThreadIdInput, "Arial", 14, 80, Pos.BASELINE_LEFT, 40, 100);
+		setupTextUI(text_ThreadIdInput, "Arial", 14, 180, Pos.BASELINE_LEFT, 120, 95, true);
+		text_ThreadIdInput.setText("Assignment1");
+
+		setupButtonUI(button_LockThread, "Dialog", 13, 130, Pos.CENTER, 320, 95);
+		button_LockThread.setOnAction((_) -> performChangeThreadStatus(ThreadStatus.LOCKED));
+
+		setupButtonUI(button_OpenThread, "Dialog", 13, 130, Pos.CENTER, 460, 95);
+		button_OpenThread.setOnAction((_) -> performChangeThreadStatus(ThreadStatus.OPEN));
+
+		setupButtonUI(button_ArchiveThread, "Dialog", 13, 130, Pos.CENTER, 600, 95);
+		button_ArchiveThread.setOnAction((_) -> performChangeThreadStatus(ThreadStatus.ARCHIVED));
+
+		setupLabelUI(label_ThreadStatus, "Arial", 13, 200, Pos.BASELINE_LEFT, 750, 100);
+		label_ThreadStatus.setTextFill(Color.DARKBLUE);
+
+		// GUI Area 2: Posts (shifted down to make room for lifecycle section)
+		setupLabelUI(label_PostSection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 130);
 
 		setupLabelUI(label_PostTitle, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 135);
 		setupTextUI(text_PostTitle, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 130, true);
@@ -240,6 +284,12 @@ public class ViewDiscussion {
 		theRootPane.getChildren().addAll(
 				label_PageTitle, line_Separator1, label_Status,
 
+				// Thread lifecycle admin panel
+				label_ThreadSection,
+				label_ThreadIdInput, text_ThreadIdInput,
+				button_LockThread, button_OpenThread, button_ArchiveThread,
+				label_ThreadStatus,
+
 				label_PostSection,
 				label_PostTitle, text_PostTitle,
 				label_PostBody, text_PostBody,
@@ -294,6 +344,20 @@ public class ViewDiscussion {
 	*/
 
 	private static void performCreatePostUI() {
+		// Check thread status — block posting if locked or archived
+		String threadName = text_PostThread.getText().trim();
+		if (!threadName.isEmpty()) {
+			ThreadStatus status = ThreadLifecycleService.getInstance().getStatus(threadName);
+			if (status == ThreadStatus.LOCKED) {
+				setStatus("This thread is locked. No new posts allowed.", true);
+				return;
+			}
+			if (status == ThreadStatus.ARCHIVED) {
+				setStatus("This thread is archived. No new posts allowed.", true);
+				return;
+			}
+		}
+
 		String err = ControllerDiscussion.getPostStore().createPost(
 				text_PostTitle.getText(),
 				text_PostBody.getText(),
@@ -518,8 +582,30 @@ public class ViewDiscussion {
 
 	/*-*******************************************************************************************
 
+	Thread Lifecycle handler (Admin only)
+
+	*/
+
+	private static void performChangeThreadStatus(ThreadStatus newStatus) {
+		String threadId = text_ThreadIdInput.getText().trim();
+		if (threadId.isEmpty()) {
+			setStatus("Please enter a Thread ID.", true);
+			return;
+		}
+		String result = ThreadLifecycleService.getInstance().changeThreadStatus(threadId, newStatus, theUser);
+		if (result != null) {
+			setStatus(result, true);
+		} else {
+			ThreadStatus current = ThreadLifecycleService.getInstance().getStatus(threadId);
+			label_ThreadStatus.setText("Status: " + current.name());
+			setStatus("Thread [" + threadId + "] is now " + current.name() + ".", false);
+		}
+	}
+
+	/*-*******************************************************************************************
+
 	Local helpers
-	
+
 	*/
 
 	private static String formatPosts(List<Post> posts) {

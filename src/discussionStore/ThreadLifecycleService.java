@@ -59,12 +59,12 @@ public class ThreadLifecycleService {
         }
 
         /* 
-         * WHY: Just making sure the thread ID actually exists in the map first. 
-         * If we don't check this, the app could crash with a null pointer error 
-         * or just glitch out the database.
+         * WHY: If the thread doesn't exist yet in the store, we auto-register it 
+         * as OPEN. This allows the admin to manage any thread from the discussion 
+         * board, not just the hardcoded seed thread.
          */
         if (!threadStore.containsKey(threadId)) {
-            return "ERROR: The requested thread does not exist.";
+            threadStore.put(threadId, ThreadStatus.OPEN);
         }
 
         // Apply the new status to the mock database
@@ -81,6 +81,10 @@ public class ThreadLifecycleService {
      * @return the current ThreadStatus.
      */
     public ThreadStatus getStatus(String threadId) {
-        return threadStore.getOrDefault(threadId, ThreadStatus.OPEN);
+        // Auto-register unknown threads as OPEN (open by default)
+        if (!threadStore.containsKey(threadId)) {
+            threadStore.put(threadId, ThreadStatus.OPEN);
+        }
+        return threadStore.get(threadId);
     }
 }
