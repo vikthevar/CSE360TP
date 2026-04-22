@@ -74,6 +74,7 @@ public class ViewDiscussion {
 	protected static TextField text_SearchThread = new TextField();
 
 	protected static Button button_SearchPosts = new Button("Search");
+	protected static Button button_ShowStats = new Button("Engagement Stats");
 
 	protected static Label label_DeletePost = new Label("Delete Post by ID:");
 	protected static TextField text_DeletePostId = new TextField();
@@ -185,14 +186,17 @@ public class ViewDiscussion {
 		setupButtonUI(button_SearchPosts, "Dialog", 14, 100, Pos.CENTER, 710, 295);
 		button_SearchPosts.setOnAction((_) -> performSearchPostsUI());
 
-		setupLabelUI(label_DeletePost, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 335);
-		setupTextUI(text_DeletePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 185, 330, true);
-		setupButtonUI(button_DeletePost, "Dialog", 14, 130, Pos.CENTER, 285, 330);
+		setupButtonUI(button_ShowStats, "Dialog", 14, 160, Pos.CENTER, 560, 335);
+		button_ShowStats.setOnAction((_) -> performShowEngagementStatsUI());
+
+		setupLabelUI(label_DeletePost, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 375);
+		setupTextUI(text_DeletePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 185, 370, true);
+		setupButtonUI(button_DeletePost, "Dialog", 14, 130, Pos.CENTER, 285, 370);
 		button_DeletePost.setOnAction((_) -> performDeletePostUI());
 
-		setupLabelUI(label_UpdatePostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 430, 335);
-		setupTextUI(text_UpdatePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 575, 330, true);
-		setupButtonUI(button_UpdatePost, "Dialog", 14, 130, Pos.CENTER, 675, 330);
+		setupLabelUI(label_UpdatePostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 430, 375);
+		setupTextUI(text_UpdatePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 575, 370, true);
+		setupButtonUI(button_UpdatePost, "Dialog", 14, 130, Pos.CENTER, 675, 370);
 		button_UpdatePost.setOnAction((_) -> performUpdatePostUI());
 
 		// GUI Area 3: Post list displays
@@ -248,7 +252,7 @@ public class ViewDiscussion {
 				button_CreatePost,
 				label_SearchPosts, text_SearchPosts,
 				label_SearchThread, text_SearchThread,
-				button_SearchPosts,
+			button_SearchPosts, button_ShowStats,
 				label_DeletePost, text_DeletePostId, button_DeletePost,
 				label_UpdatePostId, text_UpdatePostId, button_UpdatePost,
 
@@ -321,6 +325,17 @@ public class ViewDiscussion {
 		);
 		updatePostListDisplays();
 		setStatus("Post search completed.", false);
+	}
+
+	private static void performShowEngagementStatsUI() {
+		String report = ControllerDiscussion.buildEngagementStatisticsReport();
+		Alert alert = new Alert(Alert.AlertType.INFORMATION);
+		alert.setTitle("Engagement Statistics");
+		alert.setHeaderText("Discussion participation metrics");
+		alert.setContentText(report);
+		alert.setResizable(true);
+		alert.getDialogPane().setPrefSize(620, 360);
+		alert.showAndWait();
 	}
 
 	private static void performDeletePostUI() {
