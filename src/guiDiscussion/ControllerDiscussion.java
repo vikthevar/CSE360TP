@@ -7,6 +7,7 @@ import discussionStore.PostStore;
 import discussionStore.ReplyStore;
 import entityClasses.Post;
 import entityClasses.Reply;
+import engagementAnalytics.EngagementAnalytics;
 import database.Database;
 
 /**
@@ -117,5 +118,14 @@ public class ControllerDiscussion {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Builds a plain-text engagement statistics report for the current posts.
+     *
+     * @return analytics report text
+     */
+    protected static String buildEngagementStatisticsReport() {
+        return EngagementAnalytics.buildReport(postStore.getAllPosts());
     }
 }
