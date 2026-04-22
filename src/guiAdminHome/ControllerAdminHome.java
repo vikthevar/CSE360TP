@@ -390,6 +390,16 @@ public class ControllerAdminHome {
 		guiAddRemoveRoles.ViewAddRemoveRoles.displayAddRemoveRoles(ViewAdminHome.theStage, 
 				ViewAdminHome.theUser);
 	}
+
+	/**********
+	 * <p> Title: manageDiscussion() Method. </p>
+	 *
+	 * <p> Description: Protected method that navigates the admin to the Discussion page
+	 * where they can lock, open, or archive discussion threads. </p>
+	 */
+	protected static void manageDiscussion() {
+		guiDiscussion.ViewDiscussion.displayDiscussion(ViewAdminHome.theStage, ViewAdminHome.theUser);
+	}
 	
 	/**********
 	 * <p> 

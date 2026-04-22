@@ -60,7 +60,7 @@ public class ControllerRole1Home {
 	 * 
 	 */
 	protected static void performDiscussion() {
-		guiDiscussion.ViewDiscussion.displayDiscussion(ViewRole1Home.theStage);
+		guiDiscussion.ViewDiscussion.displayDiscussion(ViewRole1Home.theStage, ViewRole1Home.theUser);
 	}
 
 	/**********

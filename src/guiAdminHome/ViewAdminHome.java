@@ -103,6 +103,7 @@ public class ViewAdminHome {
 	protected static Button button_DeleteUser = new Button("Delete a User");
 	protected static Button button_ListUsers = new Button("List All Users");
 	protected static Button button_AddRemoveRoles = new Button("Add/Remove Roles");
+	protected static Button button_ManageDiscussion = new Button("Manage Discussion Threads");
 	protected static Alert alertNotImplemented = new Alert(AlertType.INFORMATION);
 	
 	// Sets up the input for the target username for reseting a password
@@ -269,6 +270,9 @@ public class ViewAdminHome {
 
 		setupButtonUI(button_AddRemoveRoles, "Dialog", 16, 250, Pos.CENTER, 20, 470);
 		button_AddRemoveRoles.setOnAction((_) -> {ControllerAdminHome.addRemoveRoles(); });
+
+		setupButtonUI(button_ManageDiscussion, "Dialog", 16, 250, Pos.CENTER, 300, 470);
+		button_ManageDiscussion.setOnAction((_) -> {ControllerAdminHome.manageDiscussion(); });
 		
 		// GUI Area 5
 		setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
@@ -292,6 +296,7 @@ public class ViewAdminHome {
     		button_DeleteUser,
     		button_ListUsers,
     		button_AddRemoveRoles,
+    		button_ManageDiscussion,
     		line_Separator4, 
     		button_Logout,
     		button_Quit,
