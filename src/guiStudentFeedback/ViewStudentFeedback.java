@@ -23,13 +23,13 @@ import java.util.List;
  * permissions to create, modify, or delete feedback. This enforces proper
  * access control and supports the evaluation process.</p>
  *
- * <p> The interface includes:
+ * The interface includes:
  * <ul>
  *   <li>A title label</li>
  *   <li>A display area showing feedback entries</li>
  *   <li>A navigation button to return to the home screen</li>
  * </ul>
- * </p>
+ * 
  *
  * @author David Rowlands
  */

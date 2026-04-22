@@ -26,13 +26,13 @@ import javafx.scene.control.Alert.AlertType;
  * a post, enter feedback, and save it to the database. Access is restricted to
  * authorized staff users through controller-level validation.</p>
  *
- * <p> The interface includes:
+ * The interface includes:
  * <ul>
  *   <li>A list of student posts</li>
  *   <li>A text area for entering feedback</li>
  *   <li>Buttons for saving feedback and navigating back</li>
  * </ul>
- * </p>
+ * 
  *
  * <p> Feedback is stored in the database and associated with a specific post
  * and student. Students can later view feedback directed to them through
