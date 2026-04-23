@@ -1,6 +1,7 @@
 package guiAdminHome;
 
 import database.Database;
+import guiGraderDashboard.GraderDashboardPage;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ComboBox;
@@ -401,6 +402,12 @@ public class ControllerAdminHome {
 		guiDiscussion.ViewDiscussion.displayDiscussion(ViewAdminHome.theStage, ViewAdminHome.theUser);
 	}
 	
+	protected static void openGraderDashboard() {
+	    guiGraderDashboard.GraderDashboardPage.displayGraderDashboard(
+	        ViewAdminHome.theStage,
+	        ViewAdminHome.theUser
+	    );
+	}
 	/**********
 	 * <p> 
 	 * 
