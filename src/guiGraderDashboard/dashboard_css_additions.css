@@ -1,0 +1,222 @@
+/* ============================================================
+   GRADER DASHBOARD — append these rules to application.css
+   ============================================================ */
+
+/* Root / background */
+.dashboard-root {
+    -fx-background-color: #1E1E2E;
+}
+
+.main-content {
+    -fx-background-color: #1E1E2E;
+}
+
+/* Header */
+.dashboard-header {
+    -fx-background-color: #16213E;
+    -fx-border-color: #2A2A4A;
+    -fx-border-width: 0 0 1 0;
+}
+
+.header-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E0E0F0;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.back-button {
+    -fx-background-color: #2A2A4A;
+    -fx-text-fill: #A0A8C0;
+    -fx-font-size: 13px;
+    -fx-padding: 6 14 6 14;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.back-button:hover {
+    -fx-background-color: #3A3A6A;
+    -fx-text-fill: #E0E0F0;
+}
+
+/* Section labels */
+.section-label {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #6070A0;
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-letter-spacing: 1.5px;
+}
+
+.section-heading {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #C0C8E8;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+/* Left panel */
+.left-panel {
+    -fx-background-color: #16213E;
+    -fx-background-radius: 10;
+    -fx-padding: 16;
+    -fx-border-color: #2A2A4A;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+}
+
+/* Stat cards */
+.stat-card {
+    -fx-background-color: #1E2A4A;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 12;
+}
+
+.stat-card-title {
+    -fx-font-size: 11px;
+    -fx-text-fill: #7080A8;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.stat-card-value {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+/* Chart pane */
+.chart-pane {
+    -fx-background-color: #1A2440;
+    -fx-background-radius: 8;
+    -fx-border-color: #2A2A4A;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-padding: 6;
+}
+
+/* Tables */
+.data-table {
+    -fx-background-color: #16213E;
+    -fx-border-color: #2A2A4A;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-table-cell-border-color: #2A2A4A;
+}
+
+.data-table .column-header-background {
+    -fx-background-color: #1E2A4A;
+}
+
+.data-table .column-header .label {
+    -fx-text-fill: #8090B8;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.data-table .table-row-cell {
+    -fx-background-color: #16213E;
+    -fx-border-color: #2A2A4A;
+    -fx-border-width: 0 0 1 0;
+}
+
+.data-table .table-row-cell:odd {
+    -fx-background-color: #1A2540;
+}
+
+.data-table .table-row-cell:hover {
+    -fx-background-color: #243060;
+    -fx-cursor: hand;
+}
+
+.data-table .table-row-cell:selected {
+    -fx-background-color: #2A4080;
+}
+
+.data-table .table-cell {
+    -fx-text-fill: #C0C8E8;
+    -fx-font-size: 12px;
+}
+
+/* Search field */
+.search-field {
+    -fx-background-color: #1E2A4A;
+    -fx-text-fill: #E0E0F0;
+    -fx-prompt-text-fill: #5060A0;
+    -fx-border-color: #2A3A6A;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 12px;
+}
+
+.search-field:focused {
+    -fx-border-color: #4A70D0;
+}
+
+/* Profile panel */
+.profile-panel {
+    -fx-background-color: #16213E;
+    -fx-border-color: #4A90D9;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.profile-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E0E0F0;
+}
+
+.profile-detail {
+    -fx-font-size: 12px;
+    -fx-text-fill: #9090C0;
+}
+
+.close-button {
+    -fx-background-color: #2A2A4A;
+    -fx-text-fill: #8090B8;
+    -fx-font-size: 12px;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.close-button:hover {
+    -fx-background-color: #A03030;
+    -fx-text-fill: white;
+}
+
+/* Recent posts */
+.recent-scroll {
+    -fx-background: #16213E;
+    -fx-background-color: #16213E;
+    -fx-border-color: #2A2A4A;
+    -fx-border-radius: 6;
+}
+
+.post-card {
+    -fx-background-color: #1E2A4A;
+    -fx-background-radius: 6;
+    -fx-border-color: #2A3A6A;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+}
+
+.post-thread-title {
+    -fx-font-size: 11px;
+    -fx-text-fill: #4A90D9;
+}
+
+.post-content {
+    -fx-font-size: 12px;
+    -fx-text-fill: #C0C8E8;
+}
+
+.post-date {
+    -fx-font-size: 10px;
+    -fx-text-fill: #5060A0;
+}
