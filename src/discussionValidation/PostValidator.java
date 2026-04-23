@@ -1,34 +1,41 @@
 package discussionValidation;
 
 /**
- * The PostValidator class provides input validation for creating and updating
- * discussion posts.
+ * The PostValidator class provides input validation for creating, updating,
+ * and moderating discussion posts.
  *
- * Validation rules are explicit to ensure consistent behavior for both the UI
+ * <p>Validation rules are explicit to ensure consistent behavior for both the UI
  * and automated tests:
- * - Title is required and must be between 5 and 100 characters (trimmed).
- * - Body is required and must be between 10 and 5000 characters (trimmed).
- * - Thread defaults to "General" if not provided.
+ * <ul>
+ *   <li>Title is required and must be between 5 and 100 characters after trimming.</li>
+ *   <li>Body is required and must be between 10 and 5000 characters after trimming.</li>
+ *   <li>Thread defaults to "General" if not provided.</li>
+ *   <li>Flag reason is required for moderation actions and must be at most 500 characters.</li>
+ * </ul>
+ * </p>
  */
 public class PostValidator {
 
-    /** Minimum allowed title length (after trimming) */
+    /** Minimum allowed title length after trimming. */
     public static final int MIN_TITLE_LENGTH = 5;
 
-    /** Maximum allowed title length (after trimming) */
+    /** Maximum allowed title length after trimming. */
     public static final int MAX_TITLE_LENGTH = 100;
 
-    /** Minimum allowed body length (after trimming) */
+    /** Minimum allowed body length after trimming. */
     public static final int MIN_BODY_LENGTH = 10;
 
-    /** Maximum allowed body length (after trimming) */
+    /** Maximum allowed body length after trimming. */
     public static final int MAX_BODY_LENGTH = 5000;
+
+    /** Maximum allowed moderation flag reason length after trimming. */
+    public static final int MAX_FLAG_REASON_LENGTH = 500;
 
     /**
      * Validates title and body values for create/update operations.
      *
-     * @param title post title (may be null)
-     * @param body post body (may be null)
+     * @param title post title, may be null
+     * @param body post body, may be null
      * @return null if valid; otherwise a helpful error message
      */
     public static String validate(String title, String body) {
@@ -61,10 +68,29 @@ public class PostValidator {
     }
 
     /**
+     * Validates the reason supplied when a staff member flags a post.
+     *
+     * @param reason moderation flag reason, may be null
+     * @return null if valid; otherwise a helpful error message
+     */
+    public static String validateFlagReason(String reason) {
+        if (reason == null || reason.trim().isEmpty()) {
+            return "Flag reason is required.";
+        }
+
+        String trimmedReason = reason.trim();
+        if (trimmedReason.length() > MAX_FLAG_REASON_LENGTH) {
+            return "Flag reason must be at most " + MAX_FLAG_REASON_LENGTH + " characters.";
+        }
+
+        return null;
+    }
+
+    /**
      * Normalizes a thread name. If thread is null or empty, returns "General".
      *
-     * @param thread thread name (may be null)
-     * @return a non-empty thread name
+     * @param thread thread name, may be null
+     * @return a non-empty normalized thread name
      */
     public static String normalizeThread(String thread) {
         if (thread == null || thread.trim().isEmpty()) {
@@ -72,13 +98,13 @@ public class PostValidator {
         }
         return thread.trim();
     }
-    
+
     /**
      * Normalizes a thread name for searching.
-     * Returns empty string when no thread filter is provided.
+     * Returns an empty string when no thread filter is provided.
      *
-     * @param thread thread name (may be null)
-     * @return normalized lowercase-ready thread filter or empty string
+     * @param thread thread name, may be null
+     * @return normalized thread filter or empty string
      */
     public static String normalizeThreadSearch(String thread) {
         if (thread == null || thread.trim().isEmpty()) {

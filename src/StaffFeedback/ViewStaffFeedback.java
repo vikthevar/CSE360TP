@@ -1,72 +1,69 @@
 package StaffFeedback;
 
-import javafx.geometry.Pos;
+import java.util.List;
+
+import entityClasses.Post;
+import entityClasses.User;
+import guiDiscussion.ControllerDiscussion;
+import guiDiscussion.ViewDiscussion;
+import guiRole2.ViewRole2Home;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import entityClasses.User;
-import database.Database;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ListCell;
-import java.util.List;
-import java.util.ArrayList;
-import entityClasses.Post;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 
 /**
  * <p> Title: ViewStaffFeedback Class. </p>
  *
  * <p> Description: This class represents the graphical user interface for staff
  * to review student posts and provide private feedback. Staff users can select
- * a post, enter feedback, and save it to the database. Access is restricted to
- * authorized staff users through controller-level validation.</p>
+ * a post, enter feedback, and save it to the database.</p>
  *
- * The interface includes:
- * <ul>
- *   <li>A list of student posts</li>
- *   <li>A text area for entering feedback</li>
- *   <li>Buttons for saving feedback and navigating back</li>
- * </ul>
- * 
- *
- * <p> Feedback is stored in the database and associated with a specific post
- * and student. Students can later view feedback directed to them through
- * their own interface.</p>
+ * <p>This TP3-oriented version loads flagged posts by default so staff can
+ * review content that is most relevant to moderation and evaluation tasks.</p>
  *
  * @author David Rowlands
  */
 public class ViewStaffFeedback {
 
-    /** The primary stage used for this view */
+    /** The primary stage used for this view. */
     private static Stage theStage;
 
-    /** The currently logged-in user */
+    /** The currently logged-in user. */
     private static User theUser;
 
-    /** Scene for the staff feedback interface */
+    /** Scene for the staff feedback interface. */
     private static Scene scene;
 
-    /** Root layout pane */
+    /** Root layout pane. */
     private static Pane root;
 
-    /** Title label for the page */
+    /** Title label for the page. */
     private static Label label_Title = new Label("Staff Feedback Page");
 
-    /** Text area for entering feedback */
+    /** Small status label for user feedback. */
+    private static Label label_Status = new Label("");
+
+    /** Text area for entering feedback. */
     private static TextArea text_Feedback = new TextArea();
 
-    /** Button to save feedback */
+    /** Button to save feedback. */
     private static Button button_Save = new Button("Save Feedback");
 
-    /** Button to return to previous screen */
+    /** Button to return to the staff home page. */
     private static Button button_Back = new Button("Back");
 
-    /** ListView displaying available posts */
+    /** Button to open the discussion page for moderation/review. */
+    private static Button button_Discussion = new Button("Go To Discussion");
+
+    /** ListView displaying available posts. */
     private static ListView<Post> list_Posts = new ListView<>();
 
     /**
@@ -80,7 +77,7 @@ public class ViewStaffFeedback {
         theUser = user;
 
         root = new Pane();
-        scene = new Scene(root, 800, 600);
+        scene = new Scene(root, 950, 650);
 
         setupUI();
 
@@ -94,37 +91,35 @@ public class ViewStaffFeedback {
      * for the staff feedback page.
      */
     private static void setupUI() {
-
         label_Title.setFont(Font.font("Arial", 24));
-        label_Title.setLayoutX(250);
-        label_Title.setLayoutY(50);
+        label_Title.setLayoutX(340);
+        label_Title.setLayoutY(35);
 
-        text_Feedback.setLayoutX(350);
-        text_Feedback.setLayoutY(150);
-        text_Feedback.setPrefSize(500, 200);
-
-        button_Save.setLayoutX(150);
-        button_Save.setLayoutY(500);
-
-        button_Back.setLayoutX(50);
-        button_Back.setLayoutY(500);
+        label_Status.setFont(Font.font("Arial", 13));
+        label_Status.setLayoutX(50);
+        label_Status.setLayoutY(85);
 
         list_Posts.setLayoutX(50);
         list_Posts.setLayoutY(120);
-        list_Posts.setPrefSize(250, 300);
+        list_Posts.setPrefSize(320, 380);
 
-        // Load posts from database
-        try {
-            Database db = new Database();
-            db.connectToDatabase();
+        text_Feedback.setLayoutX(420);
+        text_Feedback.setLayoutY(120);
+        text_Feedback.setPrefSize(470, 380);
+        text_Feedback.setWrapText(true);
+        text_Feedback.setPromptText("Enter private feedback for the selected post here...");
 
-            list_Posts.getItems().setAll(db.hw2ListPosts());
+        button_Back.setLayoutX(50);
+        button_Back.setLayoutY(550);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        button_Discussion.setLayoutX(140);
+        button_Discussion.setLayoutY(550);
 
-        // Customize how posts are displayed in the list
+        button_Save.setLayoutX(760);
+        button_Save.setLayoutY(550);
+
+        loadPostsIntoList();
+
         list_Posts.setCellFactory(param -> new ListCell<Post>() {
             @Override
             protected void updateItem(Post p, boolean empty) {
@@ -132,75 +127,108 @@ public class ViewStaffFeedback {
                 if (empty || p == null) {
                     setText(null);
                 } else {
-                    setText("[" + p.getPostId() + "] " + p.getTitle() + " - " + p.getAuthor());
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("[").append(p.getPostId()).append("] ")
+                      .append(p.getTitle())
+                      .append(" - ").append(p.getAuthor());
+
+                    if (p.isFlagged()) {
+                        sb.append(" [FLAGGED]");
+                    }
+                    if (p.isHidden()) {
+                        sb.append(" [HIDDEN]");
+                    }
+                    if (p.isHighlighted()) {
+                        sb.append(" [HIGHLIGHTED]");
+                    }
+
+                    setText(sb.toString());
                 }
             }
         });
 
-        /**
-         * Handles saving feedback for a selected post.
-         * Displays alerts for validation, success, or failure.
-         */
         button_Save.setOnAction(e -> {
             Post selected = list_Posts.getSelectionModel().getSelectedItem();
 
             if (selected == null) {
-                Alert alert = new Alert(AlertType.WARNING);
-                alert.setTitle("No Post Selected");
-                alert.setHeaderText(null);
-                alert.setContentText("Please select a post before saving feedback.");
-                alert.showAndWait();
+                showAlert(AlertType.WARNING, "No Post Selected", "Please select a post before saving feedback.");
                 return;
             }
 
             String feedback = text_Feedback.getText();
 
             if (feedback == null || feedback.trim().isEmpty()) {
-                Alert alert = new Alert(AlertType.WARNING);
-                alert.setTitle("Empty Feedback");
-                alert.setHeaderText(null);
-                alert.setContentText("Feedback cannot be empty.");
-                alert.showAndWait();
+                showAlert(AlertType.WARNING, "Empty Feedback", "Feedback cannot be empty.");
                 return;
             }
 
             try {
-                Database db = new Database();
-                db.connectToDatabase();
-
-                db.hw2SaveFeedback(
-                    selected.getPostId(),
-                    selected.getAuthor(),
-                    theUser.getUserName(),
-                    feedback
+                ControllerDiscussion.getDatabase().hw2SaveFeedback(
+                        selected.getPostId(),
+                        selected.getAuthor(),
+                        theUser.getUserName(),
+                        feedback.trim()
                 );
 
-                Alert success = new Alert(AlertType.INFORMATION);
-                success.setTitle("Success");
-                success.setHeaderText(null);
-                success.setContentText("Feedback saved successfully!");
-                success.showAndWait();
-
+                showAlert(AlertType.INFORMATION, "Success", "Feedback saved successfully.");
                 text_Feedback.clear();
-
+                label_Status.setText("Feedback saved for Post " + selected.getPostId() + ".");
             } catch (Exception ex) {
                 ex.printStackTrace();
-
-                Alert error = new Alert(AlertType.ERROR);
-                error.setTitle("Error");
-                error.setHeaderText(null);
-                error.setContentText("Failed to save feedback. Please try again.");
-                error.showAndWait();
+                showAlert(AlertType.ERROR, "Error", "Failed to save feedback. Please try again.");
             }
         });
 
-        /**
-         * Handles navigation back to the staff home screen.
-         */
-        button_Back.setOnAction(e -> {
-            guiRole2.ViewRole2Home.displayRole2Home(theStage, theUser);
-        });
+        button_Back.setOnAction(e -> ViewRole2Home.displayRole2Home(theStage, theUser));
 
-        root.getChildren().addAll(label_Title, text_Feedback, button_Save, button_Back, list_Posts);
+        button_Discussion.setOnAction(e -> ViewDiscussion.displayDiscussion(theStage, theUser));
+
+        root.getChildren().addAll(
+                label_Title, label_Status,
+                list_Posts, text_Feedback,
+                button_Back, button_Discussion, button_Save
+        );
+    }
+
+    /**
+     * Loads flagged posts into the list view. If no flagged posts exist,
+     * the method falls back to loading all posts so the page is still usable.
+     */
+    private static void loadPostsIntoList() {
+        try {
+            List<Post> flaggedPosts = ControllerDiscussion.getPostStore().getFlaggedPosts();
+
+            if (flaggedPosts != null && !flaggedPosts.isEmpty()) {
+                list_Posts.getItems().setAll(flaggedPosts);
+                label_Status.setText("Showing flagged posts for staff review.");
+            } else {
+                List<Post> allPosts = ControllerDiscussion.getPostStore().getAllPosts();
+                list_Posts.getItems().setAll(allPosts);
+
+                if (allPosts.isEmpty()) {
+                    label_Status.setText("No posts are available.");
+                } else {
+                    label_Status.setText("No flagged posts found. Showing all posts instead.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            label_Status.setText("Failed to load posts.");
+        }
+    }
+
+    /**
+     * Displays a simple alert dialog.
+     *
+     * @param type the alert type
+     * @param title the alert title
+     * @param message the alert content message
+     */
+    private static void showAlert(AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
