@@ -10,6 +10,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import database.Database;
 //import database.Database;
+import StaffFeedback.ControllerStaffFeedback;
 import entityClasses.User;
 
 
@@ -49,6 +50,7 @@ public class ViewRole2Home {
 	protected static Label label_PageTitle = new Label();
 	protected static Label label_UserDetails = new Label();
 	protected static Button button_UpdateThisUser = new Button("Account Update");
+	protected static Button button_ManageFeedback = new Button("Manage Feedback");
 		
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
@@ -164,7 +166,11 @@ public class ViewRole2Home {
 		
 		// GUI Area 2
 		
-			// This is a stub, so this area is empty
+		setupButtonUI(button_ManageFeedback, "Dialog", 18, 250, Pos.CENTER, 300, 120);
+		button_ManageFeedback.setOnAction((_) -> {
+		    ControllerStaffFeedback.showStaffFeedback(theStage, theUser);
+		});
+
 		
 		
 		// GUI Area 3
@@ -173,12 +179,13 @@ public class ViewRole2Home {
         
         setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 540);
         button_Quit.setOnAction((_) -> {ControllerRole2Home.performQuit(); });
+        
 
 		// This is the end of the GUI initialization code
 		
 		// Place all of the widget items into the Root Pane's list of children
         theRootPane.getChildren().addAll(
-			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
+			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1, button_ManageFeedback,
 	        line_Separator4, button_Logout, button_Quit);
 	}
 	

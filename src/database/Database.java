@@ -145,6 +145,15 @@ public class Database {
 		        + "isDeleted BOOL DEFAULT FALSE"
 		        + ")";
 		statement.execute(replyTable);
+		
+		String feedbackTable = "CREATE TABLE IF NOT EXISTS HW2_FEEDBACK ("
+		        + "feedbackId INT AUTO_INCREMENT PRIMARY KEY, "
+		        + "postId INT NOT NULL, "
+		        + "studentUsername VARCHAR(100) NOT NULL, "
+		        + "staffUsername VARCHAR(100) NOT NULL, "
+		        + "comment VARCHAR(5000) NOT NULL"
+		        + ")";
+		statement.execute(feedbackTable);
 	}
 
 
@@ -1540,6 +1549,44 @@ public class Database {
 
 	    return out;
 	}
+	
+	/**
+	 * Takes the feedback from a staff and saves it to the database
+	 */
+	public void hw2SaveFeedback(int postId, String student, String staff, String comment) throws SQLException {
+	    String sql = "INSERT INTO HW2_FEEDBACK (postId, studentUsername, staffUsername, comment) VALUES (?, ?, ?, ?)";
+	    
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, postId);
+	        ps.setString(2, student);
+	        ps.setString(3, staff);
+	        ps.setString(4, comment);
+	        ps.executeUpdate();
+	    }
+	}
+	
+	/**
+	 * Retrieves feedback from the feedback table in database and returns the list of feedback
+	 */
+	public List<String> hw2GetFeedbackForStudent(String studentUsername) throws SQLException {
+	    List<String> feedbackList = new ArrayList<>();
+
+	    String sql = "SELECT postId, staffUsername, comment FROM HW2_FEEDBACK WHERE studentUsername = ?";
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, studentUsername);
+	        ResultSet rs = ps.executeQuery();
+
+	        while (rs.next()) {
+	            String entry = "Post ID: " + rs.getInt("postId") +
+	                           "\nFrom: " + rs.getString("staffUsername") +
+	                           "\nFeedback: " + rs.getString("comment") + "\n";
+	            feedbackList.add(entry);
+	        }
+	    }
+
+	    return feedbackList;
+	}
 
 
 	/*******
@@ -1586,4 +1633,6 @@ public class Database {
 			se.printStackTrace(); 
 		} 
 	}
+	
+	
 }
