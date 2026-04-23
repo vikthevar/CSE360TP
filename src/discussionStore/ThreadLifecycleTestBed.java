@@ -2,10 +2,45 @@ package discussionStore;
 
 import entityClasses.User;
 
+/**
+ * Title: ThreadLifecycleTestBed Class.
+ *
+ * <p>Description:</p>
+ * <p>
+ * This class provides a semi-automated test bed for validating thread lifecycle
+ * management functionality. It tests state transitions (OPEN, LOCKED, ARCHIVED)
+ * and enforces role-based access control using the {@link ThreadLifecycleService}.
+ * </p>
+ *
+ * <p>Test Coverage Includes:</p>
+ * <ul>
+ *   <li>Valid state transitions performed by administrators</li>
+ *   <li>Unauthorized access attempts by non-admin users</li>
+ *   <li>Handling of invalid thread identifiers</li>
+ *   <li>Handling of no-operation (same-state) transitions</li>
+ * </ul>
+ *
+ * <p>
+ * This test bed complements JUnit testing by providing readable console output
+ * that demonstrates correct lifecycle behavior and identifies authorization issues.
+ * </p>
+ */
 public class ThreadLifecycleTestBed {
     
+    /** Shared instance of the lifecycle service under test. */
     private static ThreadLifecycleService service = ThreadLifecycleService.getInstance();
     
+    /**
+     * Entry point for executing all thread lifecycle test cases.
+     *
+     * <p>Description:</p>
+     * <p>
+     * Executes a sequence of positive and negative test cases to validate thread
+     * state transitions and authorization enforcement.
+     * </p>
+     *
+     * @param args command-line arguments (not used)
+     */
     public static void main(String[] args) {
         System.out.println("--- Starting Thread Lifecycle Test Bed ---");
         
@@ -20,6 +55,11 @@ public class ThreadLifecycleTestBed {
         System.out.println("--- Testing Completed ---");
     }
 
+    /**
+     * Creates a test user with administrative privileges.
+     *
+     * @return a user configured as an administrator
+     */
     private static User createAdminUser() {
         User admin = new User();
         admin.setUserName("adminUser");
@@ -27,6 +67,11 @@ public class ThreadLifecycleTestBed {
         return admin;
     }
 
+    /**
+     * Creates a test user without administrative privileges.
+     *
+     * @return a user configured as a non-admin student
+     */
     private static User createStudentUser() {
         User student = new User();
         student.setUserName("studentUser");
@@ -34,10 +79,19 @@ public class ThreadLifecycleTestBed {
         return student;
     }
 
+    /**
+     * POS-01: Validates that an admin can lock an OPEN thread.
+     *
+     * <p>Expected Result:</p>
+     * <ul>
+     *   <li>Operation succeeds</li>
+     *   <li>Thread status becomes LOCKED</li>
+     * </ul>
+     */
     private static void testPOS01_AdminLocksOpenThread() {
         System.out.println("\nExecuting POS-01: Admin Locks Open Thread");
         User admin = createAdminUser();
-        // The service initializes "Assignment1" as OPEN by default
+
         String result = service.changeThreadStatus("Assignment1", ThreadStatus.LOCKED, admin);
         
         if (result == null && service.getStatus("Assignment1") == ThreadStatus.LOCKED) {
@@ -47,11 +101,19 @@ public class ThreadLifecycleTestBed {
         }
     }
 
+    /**
+     * POS-02: Validates that an admin can reopen a LOCKED thread.
+     *
+     * <p>Expected Result:</p>
+     * <ul>
+     *   <li>Operation succeeds</li>
+     *   <li>Thread status becomes OPEN</li>
+     * </ul>
+     */
     private static void testPOS02_AdminOpensLockedThread() {
         System.out.println("\nExecuting POS-02: Admin Opens Locked Thread");
         User admin = createAdminUser();
-        
-        // Relies on POS-01 having locked the thread, or just forces it
+
         String result = service.changeThreadStatus("Assignment1", ThreadStatus.OPEN, admin);
         
         if (result == null && service.getStatus("Assignment1") == ThreadStatus.OPEN) {
@@ -61,10 +123,19 @@ public class ThreadLifecycleTestBed {
         }
     }
 
+    /**
+     * POS-03: Validates that an admin can archive an OPEN thread.
+     *
+     * <p>Expected Result:</p>
+     * <ul>
+     *   <li>Operation succeeds</li>
+     *   <li>Thread status becomes ARCHIVED</li>
+     * </ul>
+     */
     private static void testPOS03_AdminArchivesOpenThread() {
         System.out.println("\nExecuting POS-03: Admin Archives Open Thread");
         User admin = createAdminUser();
-        
+
         String result = service.changeThreadStatus("Assignment1", ThreadStatus.ARCHIVED, admin);
         
         if (result == null && service.getStatus("Assignment1") == ThreadStatus.ARCHIVED) {
@@ -74,10 +145,19 @@ public class ThreadLifecycleTestBed {
         }
     }
 
+    /**
+     * POS-04: Validates that an admin can reopen an ARCHIVED thread.
+     *
+     * <p>Expected Result:</p>
+     * <ul>
+     *   <li>Operation succeeds</li>
+     *   <li>Thread status becomes OPEN</li>
+     * </ul>
+     */
     private static void testPOS04_AdminReopensArchivedThread() {
         System.out.println("\nExecuting POS-04: Admin Reopens Archived Thread");
         User admin = createAdminUser();
-        
+
         String result = service.changeThreadStatus("Assignment1", ThreadStatus.OPEN, admin);
         
         if (result == null && service.getStatus("Assignment1") == ThreadStatus.OPEN) {
@@ -87,24 +167,44 @@ public class ThreadLifecycleTestBed {
         }
     }
 
+    /**
+     * NEG-01: Validates that a non-admin cannot modify thread state.
+     *
+     * <p>Expected Result:</p>
+     * <ul>
+     *   <li>Operation fails</li>
+     *   <li>Error message indicates unauthorized access</li>
+     *   <li>Thread state remains unchanged</li>
+     * </ul>
+     */
     private static void testNEG01_NonAdminAttemptsToLockThread() {
         System.out.println("\nExecuting NEG-01: Non-Admin Attempts to Lock Thread");
         User student = createStudentUser();
-        
+
         ThreadStatus initialStatus = service.getStatus("Assignment1");
         String result = service.changeThreadStatus("Assignment1", ThreadStatus.LOCKED, student);
         
-        if (result != null && result.contains("UNAUTHORIZED") && service.getStatus("Assignment1") == initialStatus) {
+        if (result != null && result.contains("UNAUTHORIZED")
+                && service.getStatus("Assignment1") == initialStatus) {
             System.out.println("PASS: Student was appropriately blocked from locking the thread.");
         } else {
             System.out.println("FAIL: Student was not blocked appropriately. Output: " + result);
         }
     }
 
+    /**
+     * NEG-05: Validates handling of operations on a nonexistent thread.
+     *
+     * <p>Expected Result:</p>
+     * <ul>
+     *   <li>Operation fails</li>
+     *   <li>Error message indicates invalid thread</li>
+     * </ul>
+     */
     private static void testNEG05_NonexistentThreadOperation() {
         System.out.println("\nExecuting NEG-05: Nonexistent Thread Operation");
         User admin = createAdminUser();
-        
+
         String result = service.changeThreadStatus("GhostThread", ThreadStatus.LOCKED, admin);
         
         if (result != null && result.contains("ERROR")) {
@@ -114,11 +214,19 @@ public class ThreadLifecycleTestBed {
         }
     }
 
+    /**
+     * ST-07: Validates behavior when attempting a no-op state transition.
+     *
+     * <p>Expected Result:</p>
+     * <ul>
+     *   <li>Operation succeeds without changes</li>
+     *   <li>Thread state remains the same</li>
+     * </ul>
+     */
     private static void testST07_NoOpTransition() {
         System.out.println("\nExecuting ST-07: No-Op Transition (Same Status)");
         User admin = createAdminUser();
-        
-        // Assuming thread is OPEN
+
         String result = service.changeThreadStatus("Assignment1", ThreadStatus.OPEN, admin);
         
         if (result == null && service.getStatus("Assignment1") == ThreadStatus.OPEN) {
