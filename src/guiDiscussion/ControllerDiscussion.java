@@ -66,7 +66,7 @@ public class ControllerDiscussion {
      *
      * @return post store
      */
-    protected static PostStore getPostStore() {
+    public static PostStore getPostStore() {
         return postStore;
     }
 
@@ -75,7 +75,7 @@ public class ControllerDiscussion {
      *
      * @return reply store
      */
-    protected static ReplyStore getReplyStore() {
+    public static ReplyStore getReplyStore() {
         return replyStore;
     }
 
@@ -84,7 +84,7 @@ public class ControllerDiscussion {
      *
      * @return database
      */
-    protected static Database getDatabase() {
+    public static Database getDatabase() {
         return database;
     }
 

@@ -59,6 +59,21 @@ public class Post {
 
     /** Indicates whether the post has been deleted */
     private boolean isDeleted;
+    
+    /** Indicates whether the post has been flagged by staff */
+    private boolean isFlagged;
+
+    /** Indicates whether the post has been hidden from normal student view */
+    private boolean isHidden;
+
+    /** Indicates whether the post has been highlighted as high quality */
+    private boolean isHighlighted;
+
+    /** Optional staff-provided reason for flagging */
+    private String flagReason;
+
+    /** Username of the staff member who flagged the post */
+    private String flaggedBy;
 
     /**
      * Constructs a new Post object.
@@ -77,6 +92,11 @@ public class Post {
         this.thread = (thread == null || thread.isEmpty()) ? "General" : thread;
         this.createdTimestamp = LocalDateTime.now();
         this.isDeleted = false;
+        this.isFlagged = false;
+        this.isHidden = false;
+        this.isHighlighted = false;
+        this.flagReason = "";
+        this.flaggedBy = "";
     }
 
     /**
@@ -185,4 +205,19 @@ public class Post {
     public void setDeleted(boolean deleted) {
         this.isDeleted = deleted;
     }
+    
+    public boolean isFlagged() { return isFlagged; }
+    public void setFlagged(boolean flagged) { this.isFlagged = flagged; }
+
+    public boolean isHidden() { return isHidden; }
+    public void setHidden(boolean hidden) { this.isHidden = hidden; }
+
+    public boolean isHighlighted() { return isHighlighted; }
+    public void setHighlighted(boolean highlighted) { this.isHighlighted = highlighted; }
+
+    public String getFlagReason() { return flagReason; }
+    public void setFlagReason(String flagReason) { this.flagReason = flagReason; }
+
+    public String getFlaggedBy() { return flaggedBy; }
+    public void setFlaggedBy(String flaggedBy) { this.flaggedBy = flaggedBy; }
 }

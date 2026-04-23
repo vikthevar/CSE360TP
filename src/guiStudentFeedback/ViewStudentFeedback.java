@@ -1,59 +1,51 @@
 package guiStudentFeedback;
 
-import javafx.geometry.Pos;
+import java.util.List;
+
+import entityClasses.User;
+import guiDiscussion.ControllerDiscussion;
+import guiRole1.ViewRole1Home;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import entityClasses.User;
-import database.Database;
-import java.util.List;
 
 /**
  * <p> Title: ViewStudentFeedback Class. </p>
  *
  * <p> Description: This class represents the graphical user interface for
  * students to view feedback provided by staff. The interface displays all
- * feedback associated with the currently logged-in student, retrieved from
- * the database.</p>
+ * feedback associated with the currently logged-in student.</p>
  *
- * <p> Students are restricted to viewing feedback only and do not have
- * permissions to create, modify, or delete feedback. This enforces proper
- * access control and supports the evaluation process.</p>
- *
- * The interface includes:
- * <ul>
- *   <li>A title label</li>
- *   <li>A display area showing feedback entries</li>
- *   <li>A navigation button to return to the home screen</li>
- * </ul>
- * 
+ * <p>Students are restricted to viewing feedback only and do not have
+ * permissions to create, modify, or delete feedback.</p>
  *
  * @author David Rowlands
  */
 public class ViewStudentFeedback {
 
-    /** The primary stage used for this view */
+    /** The primary stage used for this view. */
     private static Stage theStage;
 
-    /** The currently logged-in user */
+    /** The currently logged-in user. */
     private static User theUser;
 
-    /** Scene for the student feedback interface */
+    /** Scene for the student feedback interface. */
     private static Scene scene;
 
-    /** Root layout pane */
+    /** Root layout pane. */
     private static Pane root;
 
-    /** Title label for the page */
+    /** Title label for the page. */
     private static Label label_Title = new Label("Student Feedback Page");
 
-    /** Label used to display feedback content */
-    private static Label label_Feedback = new Label("Your feedback will appear here.");
+    /** Text area used to display feedback content. */
+    private static TextArea area_Feedback = new TextArea();
 
-    /** Button to return to previous screen */
+    /** Button to return to previous screen. */
     private static Button button_Back = new Button("Back");
 
     /**
@@ -67,7 +59,7 @@ public class ViewStudentFeedback {
         theUser = user;
 
         root = new Pane();
-        scene = new Scene(root, 800, 600);
+        scene = new Scene(root, 850, 600);
 
         setupUI();
 
@@ -81,46 +73,50 @@ public class ViewStudentFeedback {
      * for the student feedback page.
      */
     private static void setupUI() {
-
         label_Title.setFont(Font.font("Arial", 24));
-        label_Title.setLayoutX(250);
+        label_Title.setLayoutX(270);
         label_Title.setLayoutY(50);
 
-        label_Feedback.setLayoutX(200);
-        label_Feedback.setLayoutY(150);
+        area_Feedback.setLayoutX(80);
+        area_Feedback.setLayoutY(130);
+        area_Feedback.setPrefSize(680, 360);
+        area_Feedback.setEditable(false);
+        area_Feedback.setWrapText(true);
 
-        button_Back.setLayoutX(50);
-        button_Back.setLayoutY(500);
+        button_Back.setLayoutX(80);
+        button_Back.setLayoutY(520);
 
-        /**
-         * Handles navigation back to the student home screen.
-         */
-        button_Back.setOnAction(e -> {
-            guiRole1.ViewRole1Home.displayRole1Home(theStage, theUser);
-        });
+        button_Back.setOnAction(e -> ViewRole1Home.displayRole1Home(theStage, theUser));
 
-        /**
-         * Loads feedback for the current student from the database
-         * and displays it in the label.
-         */
+        loadStudentFeedback();
+
+        root.getChildren().addAll(label_Title, area_Feedback, button_Back);
+    }
+
+    /**
+     * Loads all feedback entries for the currently logged-in student.
+     * If no feedback exists, a helpful message is displayed instead.
+     */
+    private static void loadStudentFeedback() {
         try {
-            Database db = new Database();
-            db.connectToDatabase();
+            List<String> feedbackList = ControllerDiscussion.getDatabase()
+                    .hw2GetFeedbackForStudent(theUser.getUserName());
 
-            List<String> feedbackList = db.hw2GetFeedbackForStudent(theUser.getUserName());
+            if (feedbackList == null || feedbackList.isEmpty()) {
+                area_Feedback.setText("No feedback available yet.");
+                return;
+            }
 
             StringBuilder sb = new StringBuilder();
-
             for (String f : feedbackList) {
                 sb.append(f).append("\n-------------------\n");
             }
 
-            label_Feedback.setText(sb.toString());
+            area_Feedback.setText(sb.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
+            area_Feedback.setText("Unable to load feedback at this time.");
         }
-
-        root.getChildren().addAll(label_Title, label_Feedback, button_Back);
     }
 }

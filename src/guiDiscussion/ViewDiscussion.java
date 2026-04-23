@@ -9,7 +9,9 @@ import entityClasses.Reply;
 import entityClasses.User;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -18,35 +20,43 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 
 /*******
  * <p> Title: ViewDiscussion Class. </p>
  * 
- * <p> Description: The Java/FX-based HW2 Discussion Page. This class provides the
- * JavaFX GUI widgets used to demonstrate CRUD and input validation for Posts and Replies,
- * including subset list results. Status feedback is shown inline on the page.</p>
+ * <p> Description: The JavaFX-based discussion page used to demonstrate CRUD,
+ * search, thread lifecycle management, engagement statistics, replies, and TP3
+ * moderation/content flagging behavior. Status feedback is shown inline on the
+ * page.</p>
+ * 
+ * <p>This page supports:
+ * <ul>
+ *   <li>post create, update, delete, search, and display</li>
+ *   <li>reply create, update, delete, and display</li>
+ *   <li>admin-only thread lifecycle actions</li>
+ *   <li>staff/admin moderation actions such as flagging, hiding, and highlighting posts</li>
+ * </ul>
+ * </p>
  * 
  * @author Vikram Thevar
- *
  */
 public class ViewDiscussion {
 
 	/*-*******************************************************************************************
-
 	Attributes
-	
-	*/
+	**********************************************************************************************/
 
-	private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
-	private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT + 140;
+	private static double width = 1180;
+	private static double height = 1340;
 
 	// GUI Area 1: Title
 	protected static Label label_PageTitle = new Label("HW2 Discussion Page");
 
 	// Inline status label
 	protected static Label label_Status = new Label("");
+
+	// Back button
+	protected static Button button_Back = new Button("Back");
 
 	// GUI Area: Thread Lifecycle (Admin Only)
 	protected static Label label_ThreadSection = new Label("Thread Lifecycle Management (Admin)");
@@ -58,10 +68,10 @@ public class ViewDiscussion {
 	protected static Label label_ThreadStatus = new Label("Status: OPEN");
 
 	// Separators
-	private static Line line_Separator1 = new Line(40, 60, width - 40, 60);
-	private static Line line_Separator2 = new Line(40, 390, width - 40, 390);
-	private static Line line_Separator3 = new Line(40, 645, width - 40, 645);
-	
+	private static Line line_Separator1 = new Line(40, 70, width - 40, 70);
+	private static Line line_Separator2 = new Line(40, 680, width - 40, 680);
+	private static Line line_Separator3 = new Line(40, 970, width - 40, 970);
+
 	// GUI Area 2: Post CRUD + Search
 	protected static Label label_PostSection = new Label("Posts");
 
@@ -95,6 +105,22 @@ public class ViewDiscussion {
 	protected static Label label_UpdatePostId = new Label("Update Post ID:");
 	protected static TextField text_UpdatePostId = new TextField();
 	protected static Button button_UpdatePost = new Button("Update Post");
+
+	// GUI Area 2B: Moderation (Staff/Admin)
+	protected static Label label_ModerationSection = new Label("Moderation (Staff/Admin)");
+	protected static Label label_ModerationPostId = new Label("Post ID:");
+	protected static TextField text_ModerationPostId = new TextField();
+
+	protected static Label label_FlagReason = new Label("Flag Reason:");
+	protected static TextField text_FlagReason = new TextField();
+
+	protected static Button button_FlagPost = new Button("Flag Post");
+	protected static Button button_UnflagPost = new Button("Unflag Post");
+	protected static Button button_HidePost = new Button("Hide Post");
+	protected static Button button_UnhidePost = new Button("Unhide Post");
+	protected static Button button_HighlightPost = new Button("Highlight Post");
+	protected static Button button_RemoveHighlight = new Button("Remove Highlight");
+	protected static Button button_ViewFlaggedPosts = new Button("View Flagged Only");
 
 	// GUI Area 3: Post lists
 	protected static Label label_AllPosts = new Label("All Posts:");
@@ -133,27 +159,31 @@ public class ViewDiscussion {
 
 	// Page configuration
 	private static ViewDiscussion theView;
-	private static User theUser;  // The current logged-in user
+	private static User theUser;
 
 	protected static Stage theStage;
 	private static Pane theRootPane;
 	private static Scene theDiscussionScene;
 
 	/*-*******************************************************************************************
-
 	Constructors
-	
-	*/
+	**********************************************************************************************/
 
+	/**
+	 * Displays the discussion page for the supplied user.
+	 *
+	 * @param ps the primary stage used to display the page
+	 * @param user the currently logged-in user
+	 */
 	public static void displayDiscussion(Stage ps, User user) {
-
 		theStage = ps;
 		theUser = user;
 
 		if (theView == null) theView = new ViewDiscussion();
 
-		// Show/hide admin lifecycle controls based on role
 		boolean isAdmin = (user != null && user.getAdminRole());
+		boolean canModerate = (user != null && (user.getAdminRole() || user.getNewRole2()));
+
 		label_ThreadSection.setVisible(isAdmin);
 		label_ThreadIdInput.setVisible(isAdmin);
 		text_ThreadIdInput.setVisible(isAdmin);
@@ -161,6 +191,19 @@ public class ViewDiscussion {
 		button_OpenThread.setVisible(isAdmin);
 		button_ArchiveThread.setVisible(isAdmin);
 		label_ThreadStatus.setVisible(isAdmin);
+
+		label_ModerationSection.setVisible(canModerate);
+		label_ModerationPostId.setVisible(canModerate);
+		text_ModerationPostId.setVisible(canModerate);
+		label_FlagReason.setVisible(canModerate);
+		text_FlagReason.setVisible(canModerate);
+		button_FlagPost.setVisible(canModerate);
+		button_UnflagPost.setVisible(canModerate);
+		button_HidePost.setVisible(canModerate);
+		button_UnhidePost.setVisible(canModerate);
+		button_HighlightPost.setVisible(canModerate);
+		button_RemoveHighlight.setVisible(canModerate);
+		button_ViewFlaggedPosts.setVisible(canModerate);
 
 		updatePostListDisplays();
 		area_RepliesForPost.setText("");
@@ -171,124 +214,152 @@ public class ViewDiscussion {
 		theStage.show();
 	}
 
+	/**
+	 * Constructs the discussion page and initializes all widgets.
+	 */
 	private ViewDiscussion() {
-
 		theRootPane = new Pane();
 		theDiscussionScene = new Scene(theRootPane, width, height);
 
-		// GUI Area 1: Title
-		setupLabelUI(label_PageTitle, "Arial", 26, width, Pos.CENTER, 0, 10);
+		setupLabelUI(label_PageTitle, "Arial", 26, width, Pos.CENTER, 0, 12);
 
-		// Status label — sits ABOVE the separator so it's never covered
-		setupLabelUI(label_Status, "Arial", 13, width - 80, Pos.BASELINE_LEFT, 40, 40);
+		setupLabelUI(label_Status, "Arial", 13, 500, Pos.BASELINE_LEFT, 40, 45);
 		label_Status.setTextFill(Color.DARKGREEN);
 
-		// GUI Area: Thread Lifecycle Admin Controls (below separator at y=60)
-		setupLabelUI(label_ThreadSection, "Arial", 15, 400, Pos.BASELINE_LEFT, 40, 68);
+		setupButtonUI(button_Back, "Dialog", 13, 100, Pos.CENTER, 1030, 35);
+		button_Back.setOnAction(e -> performBackUI());
+
+		setupLabelUI(label_ThreadSection, "Arial", 15, 400, Pos.BASELINE_LEFT, 40, 82);
 		label_ThreadSection.setTextFill(Color.DARKBLUE);
 
-		setupLabelUI(label_ThreadIdInput, "Arial", 14, 80, Pos.BASELINE_LEFT, 40, 100);
-		setupTextUI(text_ThreadIdInput, "Arial", 14, 180, Pos.BASELINE_LEFT, 120, 95, true);
+		setupLabelUI(label_ThreadIdInput, "Arial", 14, 80, Pos.BASELINE_LEFT, 40, 118);
+		setupTextUI(text_ThreadIdInput, "Arial", 14, 180, Pos.BASELINE_LEFT, 120, 113, true);
 		text_ThreadIdInput.setText("Assignment1");
 
-		setupButtonUI(button_LockThread, "Dialog", 13, 130, Pos.CENTER, 320, 95);
-		button_LockThread.setOnAction((_) -> performChangeThreadStatus(ThreadStatus.LOCKED));
+		setupButtonUI(button_LockThread, "Dialog", 13, 130, Pos.CENTER, 320, 113);
+		button_LockThread.setOnAction(e -> performChangeThreadStatus(ThreadStatus.LOCKED));
 
-		setupButtonUI(button_OpenThread, "Dialog", 13, 130, Pos.CENTER, 460, 95);
-		button_OpenThread.setOnAction((_) -> performChangeThreadStatus(ThreadStatus.OPEN));
+		setupButtonUI(button_OpenThread, "Dialog", 13, 130, Pos.CENTER, 470, 113);
+		button_OpenThread.setOnAction(e -> performChangeThreadStatus(ThreadStatus.OPEN));
 
-		setupButtonUI(button_ArchiveThread, "Dialog", 13, 130, Pos.CENTER, 600, 95);
-		button_ArchiveThread.setOnAction((_) -> performChangeThreadStatus(ThreadStatus.ARCHIVED));
+		setupButtonUI(button_ArchiveThread, "Dialog", 13, 140, Pos.CENTER, 620, 113);
+		button_ArchiveThread.setOnAction(e -> performChangeThreadStatus(ThreadStatus.ARCHIVED));
 
-		setupLabelUI(label_ThreadStatus, "Arial", 13, 200, Pos.BASELINE_LEFT, 750, 100);
+		setupLabelUI(label_ThreadStatus, "Arial", 13, 220, Pos.BASELINE_LEFT, 790, 118);
 		label_ThreadStatus.setTextFill(Color.DARKBLUE);
 
-		// GUI Area 2: Posts (shifted down to make room for lifecycle section)
-		setupLabelUI(label_PostSection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 130);
+		setupLabelUI(label_PostSection, "Arial", 20, 220, Pos.BASELINE_LEFT, 40, 165);
 
-		setupLabelUI(label_PostTitle, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 135);
-		setupTextUI(text_PostTitle, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 130, true);
+		setupLabelUI(label_PostTitle, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 205);
+		setupTextUI(text_PostTitle, "Arial", 14, 430, Pos.BASELINE_LEFT, 160, 200, true);
 
-		setupLabelUI(label_PostBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 175);
-		setupTextUI(text_PostBody, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 170, true);
+		setupLabelUI(label_PostBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 245);
+		setupTextUI(text_PostBody, "Arial", 14, 430, Pos.BASELINE_LEFT, 160, 240, true);
 
-		setupLabelUI(label_PostAuthor, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 215);
-		setupTextUI(text_PostAuthor, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 210, true);
+		setupLabelUI(label_PostAuthor, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 285);
+		setupTextUI(text_PostAuthor, "Arial", 14, 430, Pos.BASELINE_LEFT, 160, 280, true);
 
-		setupLabelUI(label_PostThread, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 255);
-		setupTextUI(text_PostThread, "Arial", 14, 360, Pos.BASELINE_LEFT, 150, 250, true);
+		setupLabelUI(label_PostThread, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 325);
+		setupTextUI(text_PostThread, "Arial", 14, 430, Pos.BASELINE_LEFT, 160, 320, true);
 
-		setupButtonUI(button_CreatePost, "Dialog", 14, 150, Pos.CENTER, 560, 170);		
-		button_CreatePost.setOnAction((_) -> performCreatePostUI());
+		setupButtonUI(button_CreatePost, "Dialog", 14, 170, Pos.CENTER, 640, 240);
+		button_CreatePost.setOnAction(e -> performCreatePostUI());
 
-		setupLabelUI(label_SearchPosts, "Arial", 14, 120, Pos.BASELINE_LEFT, 40, 300);
-		setupTextUI(text_SearchPosts, "Arial", 14, 180, Pos.BASELINE_LEFT, 160, 295, true);
+		setupLabelUI(label_SearchPosts, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 375);
+		setupTextUI(text_SearchPosts, "Arial", 14, 220, Pos.BASELINE_LEFT, 170, 370, true);
 
-		setupLabelUI(label_SearchThread, "Arial", 14, 120, Pos.BASELINE_LEFT, 370, 300);
-		setupTextUI(text_SearchThread, "Arial", 14, 180, Pos.BASELINE_LEFT, 500, 295, true);
+		setupLabelUI(label_SearchThread, "Arial", 14, 130, Pos.BASELINE_LEFT, 430, 375);
+		setupTextUI(text_SearchThread, "Arial", 14, 220, Pos.BASELINE_LEFT, 570, 370, true);
 
-		setupButtonUI(button_SearchPosts, "Dialog", 14, 100, Pos.CENTER, 710, 295);
-		button_SearchPosts.setOnAction((_) -> performSearchPostsUI());
+		setupButtonUI(button_SearchPosts, "Dialog", 14, 110, Pos.CENTER, 820, 370);
+		button_SearchPosts.setOnAction(e -> performSearchPostsUI());
 
-		setupButtonUI(button_ShowStats, "Dialog", 14, 160, Pos.CENTER, 560, 335);
-		button_ShowStats.setOnAction((_) -> performShowEngagementStatsUI());
+		setupButtonUI(button_ShowStats, "Dialog", 14, 170, Pos.CENTER, 640, 415);
+		button_ShowStats.setOnAction(e -> performShowEngagementStatsUI());
 
-		setupLabelUI(label_DeletePost, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 375);
-		setupTextUI(text_DeletePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 185, 370, true);
-		setupButtonUI(button_DeletePost, "Dialog", 14, 130, Pos.CENTER, 285, 370);
-		button_DeletePost.setOnAction((_) -> performDeletePostUI());
+		setupLabelUI(label_DeletePost, "Arial", 14, 150, Pos.BASELINE_LEFT, 40, 455);
+		setupTextUI(text_DeletePostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 190, 450, true);
+		setupButtonUI(button_DeletePost, "Dialog", 14, 140, Pos.CENTER, 300, 450);
+		button_DeletePost.setOnAction(e -> performDeletePostUI());
 
-		setupLabelUI(label_UpdatePostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 430, 375);
-		setupTextUI(text_UpdatePostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 575, 370, true);
-		setupButtonUI(button_UpdatePost, "Dialog", 14, 130, Pos.CENTER, 675, 370);
-		button_UpdatePost.setOnAction((_) -> performUpdatePostUI());
+		setupLabelUI(label_UpdatePostId, "Arial", 14, 150, Pos.BASELINE_LEFT, 470, 455);
+		setupTextUI(text_UpdatePostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 620, 450, true);
+		setupButtonUI(button_UpdatePost, "Dialog", 14, 140, Pos.CENTER, 740, 450);
+		button_UpdatePost.setOnAction(e -> performUpdatePostUI());
 
-		// GUI Area 3: Post list displays
-		setupLabelUI(label_AllPosts, "Arial", 14, 220, Pos.BASELINE_LEFT, 40, 405);
-		setupTextAreaUI(area_AllPosts, "Arial", 12, 430, 200, 40, 430);
+		setupLabelUI(label_ModerationSection, "Arial", 18, 300, Pos.BASELINE_LEFT, 40, 525);
+		label_ModerationSection.setTextFill(Color.DARKRED);
 
-		setupLabelUI(label_SubsetPosts, "Arial", 14, 260, Pos.BASELINE_LEFT, 500, 405);
-		setupTextAreaUI(area_SubsetPosts, "Arial", 12, 430, 200, 500, 430);
+		setupLabelUI(label_ModerationPostId, "Arial", 14, 80, Pos.BASELINE_LEFT, 40, 565);
+		setupTextUI(text_ModerationPostId, "Arial", 14, 100, Pos.BASELINE_LEFT, 120, 560, true);
 
-		// GUI Area 4: Replies
-		setupLabelUI(label_ReplySection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 660);
+		setupLabelUI(label_FlagReason, "Arial", 14, 100, Pos.BASELINE_LEFT, 260, 565);
+		setupTextUI(text_FlagReason, "Arial", 14, 360, Pos.BASELINE_LEFT, 360, 560, true);
 
-		setupLabelUI(label_ReplyPostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 700);
-		setupTextUI(text_ReplyPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 695, true);
+		setupButtonUI(button_FlagPost, "Dialog", 13, 110, Pos.CENTER, 40, 605);
+		button_FlagPost.setOnAction(e -> performFlagPostUI());
 
-		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 290, 700);
-		setupTextUI(text_ReplyAuthor, "Arial", 14, 220, Pos.BASELINE_LEFT, 390, 695, true);
+		setupButtonUI(button_UnflagPost, "Dialog", 13, 110, Pos.CENTER, 165, 605);
+		button_UnflagPost.setOnAction(e -> performUnflagPostUI());
 
-		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 740);
-		setupTextUI(text_ReplyBody, "Arial", 14, 520, Pos.BASELINE_LEFT, 170, 735, true);
+		setupButtonUI(button_HidePost, "Dialog", 13, 110, Pos.CENTER, 290, 605);
+		button_HidePost.setOnAction(e -> performHidePostUI());
 
-		setupButtonUI(button_CreateReply, "Dialog", 14, 150, Pos.CENTER, 170, 775);
-		button_CreateReply.setOnAction((_) -> performCreateReplyUI());
+		setupButtonUI(button_UnhidePost, "Dialog", 13, 110, Pos.CENTER, 415, 605);
+		button_UnhidePost.setOnAction(e -> performUnhidePostUI());
 
-		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 170, Pos.BASELINE_LEFT, 360, 780);
-		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 535, 775, true);
+		setupButtonUI(button_HighlightPost, "Dialog", 13, 130, Pos.CENTER, 540, 605);
+		button_HighlightPost.setOnAction(e -> performHighlightPostUI());
 
-		setupButtonUI(button_ViewReplies, "Dialog", 14, 150, Pos.CENTER, 645, 775);
-		button_ViewReplies.setOnAction((_) -> performViewRepliesForPost());
+		setupButtonUI(button_RemoveHighlight, "Dialog", 13, 150, Pos.CENTER, 685, 605);
+		button_RemoveHighlight.setOnAction(e -> performRemoveHighlightUI());
 
-		setupLabelUI(label_DeleteReply, "Arial", 14, 130, Pos.BASELINE_LEFT, 40, 815);
-		setupTextUI(text_DeleteReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 170, 810, true);
+		setupButtonUI(button_ViewFlaggedPosts, "Dialog", 13, 170, Pos.CENTER, 40, 645);
+		button_ViewFlaggedPosts.setOnAction(e -> performViewFlaggedPostsUI());
 
-		setupButtonUI(button_DeleteReply, "Dialog", 14, 150, Pos.CENTER, 290, 810);
-		button_DeleteReply.setOnAction((_) -> performDeleteReplyUI());
+		setupLabelUI(label_AllPosts, "Arial", 14, 220, Pos.BASELINE_LEFT, 40, 700);
+		setupTextAreaUI(area_AllPosts, "Arial", 12, 500, 220, 40, 725);
 
-		setupLabelUI(label_UpdateReplyId, "Arial", 14, 130, Pos.BASELINE_LEFT, 470, 815);
-		setupTextUI(text_UpdateReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 610, 810, true);
+		setupLabelUI(label_SubsetPosts, "Arial", 14, 280, Pos.BASELINE_LEFT, 580, 700);
+		setupTextAreaUI(area_SubsetPosts, "Arial", 12, 500, 220, 580, 725);
 
-		setupButtonUI(button_UpdateReply, "Dialog", 14, 150, Pos.CENTER, 730, 810);
-		button_UpdateReply.setOnAction((_) -> performUpdateReplyUI());
+		setupLabelUI(label_ReplySection, "Arial", 20, 200, Pos.BASELINE_LEFT, 40, 995);
 
-		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 890, 120, 40, 845);
+		setupLabelUI(label_ReplyPostId, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 1035);
+		setupTextUI(text_ReplyPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 180, 1030, true);
+
+		setupLabelUI(label_ReplyAuthor, "Arial", 14, 110, Pos.BASELINE_LEFT, 340, 1035);
+		setupTextUI(text_ReplyAuthor, "Arial", 14, 220, Pos.BASELINE_LEFT, 460, 1030, true);
+
+		setupLabelUI(label_ReplyBody, "Arial", 14, 90, Pos.BASELINE_LEFT, 40, 1075);
+		setupTextUI(text_ReplyBody, "Arial", 14, 600, Pos.BASELINE_LEFT, 180, 1070, true);
+
+		setupButtonUI(button_CreateReply, "Dialog", 14, 160, Pos.CENTER, 180, 1115);
+		button_CreateReply.setOnAction(e -> performCreateReplyUI());
+
+		setupLabelUI(label_ViewRepliesForPost, "Arial", 14, 180, Pos.BASELINE_LEFT, 390, 1120);
+		setupTextUI(text_ViewRepliesPostId, "Arial", 14, 90, Pos.BASELINE_LEFT, 585, 1115, true);
+
+		setupButtonUI(button_ViewReplies, "Dialog", 14, 160, Pos.CENTER, 690, 1115);
+		button_ViewReplies.setOnAction(e -> performViewRepliesForPost());
+
+		setupLabelUI(label_DeleteReply, "Arial", 14, 140, Pos.BASELINE_LEFT, 40, 1155);
+		setupTextUI(text_DeleteReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 180, 1150, true);
+
+		setupButtonUI(button_DeleteReply, "Dialog", 14, 160, Pos.CENTER, 300, 1150);
+		button_DeleteReply.setOnAction(e -> performDeleteReplyUI());
+
+		setupLabelUI(label_UpdateReplyId, "Arial", 14, 140, Pos.BASELINE_LEFT, 500, 1155);
+		setupTextUI(text_UpdateReplyId, "Arial", 14, 90, Pos.BASELINE_LEFT, 650, 1150, true);
+
+		setupButtonUI(button_UpdateReply, "Dialog", 14, 160, Pos.CENTER, 770, 1150);
+		button_UpdateReply.setOnAction(e -> performUpdateReplyUI());
+
+		setupTextAreaUI(area_RepliesForPost, "Arial", 12, 1040, 130, 40, 1190);
 
 		theRootPane.getChildren().addAll(
-				label_PageTitle, line_Separator1, label_Status,
+				label_PageTitle, line_Separator1, label_Status, button_Back,
 
-				// Thread lifecycle admin panel
 				label_ThreadSection,
 				label_ThreadIdInput, text_ThreadIdInput,
 				button_LockThread, button_OpenThread, button_ArchiveThread,
@@ -302,9 +373,17 @@ public class ViewDiscussion {
 				button_CreatePost,
 				label_SearchPosts, text_SearchPosts,
 				label_SearchThread, text_SearchThread,
-			button_SearchPosts, button_ShowStats,
+				button_SearchPosts, button_ShowStats,
 				label_DeletePost, text_DeletePostId, button_DeletePost,
 				label_UpdatePostId, text_UpdatePostId, button_UpdatePost,
+
+				label_ModerationSection,
+				label_ModerationPostId, text_ModerationPostId,
+				label_FlagReason, text_FlagReason,
+				button_FlagPost, button_UnflagPost,
+				button_HidePost, button_UnhidePost,
+				button_HighlightPost, button_RemoveHighlight,
+				button_ViewFlaggedPosts,
 
 				line_Separator2,
 				label_AllPosts, area_AllPosts,
@@ -324,11 +403,12 @@ public class ViewDiscussion {
 	}
 
 	/*-*******************************************************************************************
-
 	Methods called by Controller / UI refresh
-	
-	*/
+	**********************************************************************************************/
 
+	/**
+	 * Refreshes the all-post and subset-post text areas using the current store state.
+	 */
 	protected static void updatePostListDisplays() {
 		List<Post> all = ControllerDiscussion.getPostStore().getAllPosts();
 		List<Post> subset = ControllerDiscussion.getPostStore().getSubsetPosts();
@@ -337,18 +417,42 @@ public class ViewDiscussion {
 		area_SubsetPosts.setText(formatPosts(subset));
 	}
 
+	/**
+	 * Placeholder for reply list display updates when needed.
+	 */
 	protected static void updateReplyListDisplays() {
 		// Replies are shown in the replies text area for a selected post.
 	}
 
 	/*-*******************************************************************************************
-
 	UI action handlers
-	
-	*/
+	**********************************************************************************************/
+
+	private static void performBackUI() {
+		if (theUser == null) {
+			setStatus("No active user session found.", true);
+			return;
+		}
+
+		if (theUser.getNewRole1()) {
+			guiRole1.ViewRole1Home.displayRole1Home(theStage, theUser);
+			return;
+		}
+
+		if (theUser.getNewRole2()) {
+			guiRole2.ViewRole2Home.displayRole2Home(theStage, theUser);
+			return;
+		}
+
+		if (theUser.getAdminRole()) {
+			guiAdminHome.ViewAdminHome.displayAdminHome(theStage, theUser);
+			return;
+		}
+
+		setStatus("Unable to determine which home page to return to.", true);
+	}
 
 	private static void performCreatePostUI() {
-		// Check thread status — block posting if locked or archived
 		String threadName = text_PostThread.getText().trim();
 		if (!threadName.isEmpty()) {
 			ThreadStatus status = ThreadLifecycleService.getInstance().getStatus(threadName);
@@ -374,9 +478,9 @@ public class ViewDiscussion {
 			return;
 		}
 
-		text_PostTitle.setText("");
-		text_PostBody.setText("");
-		text_PostThread.setText("");
+		text_PostTitle.clear();
+		text_PostBody.clear();
+		text_PostThread.clear();
 
 		updatePostListDisplays();
 		setStatus("Post created successfully.", false);
@@ -477,7 +581,122 @@ public class ViewDiscussion {
 		updatePostListDisplays();
 		setStatus("Post updated successfully.", false);
 	}
-	
+
+	private static Integer parseModerationPostId() {
+		try {
+			return Integer.parseInt(text_ModerationPostId.getText().trim());
+		} catch (Exception e) {
+			setStatus("Invalid moderation post ID.", true);
+			return null;
+		}
+	}
+
+	private static void clearModerationInputs() {
+		text_ModerationPostId.clear();
+		text_FlagReason.clear();
+	}
+
+	private static void performFlagPostUI() {
+		Integer postId = parseModerationPostId();
+		if (postId == null) return;
+
+		String err = ControllerDiscussion.getPostStore().flagPost(
+				postId,
+				text_FlagReason.getText(),
+				theUser == null ? "" : theUser.getUserName()
+		);
+
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+		clearModerationInputs();
+		setStatus("Post flagged successfully.", false);
+	}
+
+	private static void performUnflagPostUI() {
+		Integer postId = parseModerationPostId();
+		if (postId == null) return;
+
+		String err = ControllerDiscussion.getPostStore().unflagPost(postId);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+		clearModerationInputs();
+		setStatus("Post unflagged successfully.", false);
+	}
+
+	private static void performHidePostUI() {
+		Integer postId = parseModerationPostId();
+		if (postId == null) return;
+
+		String err = ControllerDiscussion.getPostStore().hidePost(postId);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+		clearModerationInputs();
+		setStatus("Post hidden successfully.", false);
+	}
+
+	private static void performUnhidePostUI() {
+		Integer postId = parseModerationPostId();
+		if (postId == null) return;
+
+		String err = ControllerDiscussion.getPostStore().unhidePost(postId);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+		clearModerationInputs();
+		setStatus("Post unhidden successfully.", false);
+	}
+
+	private static void performHighlightPostUI() {
+		Integer postId = parseModerationPostId();
+		if (postId == null) return;
+
+		String err = ControllerDiscussion.getPostStore().highlightPost(postId);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+		clearModerationInputs();
+		setStatus("Post highlighted successfully.", false);
+	}
+
+	private static void performRemoveHighlightUI() {
+		Integer postId = parseModerationPostId();
+		if (postId == null) return;
+
+		String err = ControllerDiscussion.getPostStore().removeHighlightPost(postId);
+		if (err != null) {
+			setStatus(err, true);
+			return;
+		}
+
+		updatePostListDisplays();
+		clearModerationInputs();
+		setStatus("Post highlight removed successfully.", false);
+	}
+
+	private static void performViewFlaggedPostsUI() {
+		List<Post> flagged = ControllerDiscussion.getPostStore().getFlaggedPosts();
+		area_SubsetPosts.setText(formatPosts(flagged));
+		setStatus("Flagged posts loaded.", false);
+	}
+
 	private static void performCreateReplyUI() {
 		int postId;
 		try {
@@ -504,8 +723,8 @@ public class ViewDiscussion {
 			return;
 		}
 
-		text_ReplyBody.setText("");
-		text_ReplyAuthor.setText("");
+		text_ReplyBody.clear();
+		text_ReplyAuthor.clear();
 
 		area_RepliesForPost.setText(ControllerDiscussion.buildRepliesDisplayText(postId));
 		setStatus("Reply created successfully.", false);
@@ -596,10 +815,8 @@ public class ViewDiscussion {
 	}
 
 	/*-*******************************************************************************************
-
-	Thread Lifecycle handler (Admin only)
-
-	*/
+	Thread Lifecycle handler
+	**********************************************************************************************/
 
 	private static void performChangeThreadStatus(ThreadStatus newStatus) {
 		String threadId = text_ThreadIdInput.getText().trim();
@@ -618,10 +835,8 @@ public class ViewDiscussion {
 	}
 
 	/*-*******************************************************************************************
-
 	Local helpers
-
-	*/
+	**********************************************************************************************/
 
 	private static String formatPosts(List<Post> posts) {
 		if (posts == null || posts.isEmpty()) return "No posts found.\n";
@@ -632,6 +847,26 @@ public class ViewDiscussion {
 			sb.append("Post ").append(p.getPostId()).append("\n");
 			sb.append("Thread: ").append(p.getThread()).append("\n");
 			sb.append("Author: ").append(p.getAuthor()).append("\n");
+
+			if (p.isFlagged()) {
+				sb.append("[FLAGGED]");
+				if (p.getFlagReason() != null && !p.getFlagReason().isBlank()) {
+					sb.append(" Reason: ").append(p.getFlagReason());
+				}
+				if (p.getFlaggedBy() != null && !p.getFlaggedBy().isBlank()) {
+					sb.append(" By: ").append(p.getFlaggedBy());
+				}
+				sb.append("\n");
+			}
+
+			if (p.isHidden()) {
+				sb.append("[HIDDEN]\n");
+			}
+
+			if (p.isHighlighted()) {
+				sb.append("[HIGHLIGHTED]\n");
+			}
+
 			if (p.isDeleted()) {
 				sb.append("[DELETED]\n");
 			} else {
@@ -654,10 +889,8 @@ public class ViewDiscussion {
 	}
 
 	/*-*******************************************************************************************
-
-	Helper methods used to minimize code above
-	
-	*/
+	UI setup helpers
+	**********************************************************************************************/
 
 	private void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y) {
 		l.setFont(Font.font(ff, f));
