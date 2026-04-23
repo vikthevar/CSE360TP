@@ -3,7 +3,6 @@ package guiGraderDashboard;
 import javafx.geometry.*;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
@@ -12,75 +11,117 @@ import javafx.stage.Stage;
 import java.util.*;
 
 /**
- * <p> Title: GraderDashboardPage </p>
+ * Title: GraderDashboardPage
  *
- * <p> Description: JavaFX View for the Grader Dashboard. Provides instructors
- * with a centralized interface to monitor real-time activity trends,
- * identify low-participation threads, and access individual student profiles.
+ * Description:
+ * JavaFX view for the Grader Dashboard. Provides instructional staff with a
+ * centralized interface for reviewing discussion activity trends, identifying
+ * low-participation threads, and viewing individual student profiles.
  *
  * Layout:
- *   - Top: Header bar with title and Back button
- *   - Left panel: Summary stat cards + Activity trend (bar chart)
- *   - Center-top: Low-participation threads table
- *   - Center-bottom: Student roster with search + profile drill-down
- * </p>
+ * The page is organized into a header, a left-side analytics panel, and a
+ * center content area. The left panel displays summary statistics and an
+ * activity trend chart. The center panel displays low-participation threads
+ * and a searchable student roster with profile drill-down.
+ *
+ * Responsibilities:
+ * Construct and display the dashboard user interface.
+ * Load data from the controller into charts, tables, and profile panels.
+ * Handle user interactions such as searching, student selection, profile
+ * expansion, and return navigation.
+ *
+ * MVC Role:
+ * This class serves as the View in the MVC architecture. It retrieves all
+ * dashboard data through the GraderDashboardController and does not directly
+ * manage underlying data storage.
+ *
+ * Testing:
+ * Validated through manual dashboard execution, UI interaction, student
+ * search/filter testing, and profile display verification.
+ *
+ * @author Diego Armenta
  */
 public class GraderDashboardPage {
 
-    // --- MVC ---
+    /** Controller used to retrieve dashboard data. */
     private final GraderDashboardController controller;
 
-    // --- Top-level layout ---
+    /** Root layout for the dashboard scene. */
     private BorderPane root;
+
+    /** JavaFX scene used to display the dashboard. */
     private Scene scene;
 
-    // --- Panels ---
+    /** Left-side panel containing stat cards and trend chart. */
     private VBox leftPanel;
+
+    /** Center panel containing tables and student profile area. */
     private VBox centerPanel;
 
-    // --- Stat cards ---
+    /** Label showing the total posts value. */
     private Label totalPostsValue;
+
+    /** Label showing the active students value. */
     private Label activeStudentsValue;
+
+    /** Label showing the low-participation threads value. */
     private Label lowThreadsValue;
 
-    // --- Activity chart ---
+    /** Pane used to draw the activity chart. */
     private Pane chartPane;
 
-    // --- Low participation table ---
+    /** Table showing low-participation thread data. */
     private TableView<String[]> threadsTable;
 
-    // --- Student roster ---
+    /** Search field used to filter the student roster. */
     private TextField searchField;
+
+    /** Table showing student summary data. */
     private TableView<String[]> studentTable;
 
-    // --- Student profile panel (shown on row click) ---
+    /** Profile panel shown when a student is selected. */
     private VBox profilePanel;
+
+    /** Label showing the selected student's name. */
     private Label profileName;
+
+    /** Label showing the selected student's email. */
     private Label profileEmail;
+
+    /** Label showing the selected student's post count. */
     private Label profilePosts;
+
+    /** Label showing the selected student's last active date. */
     private Label profileLastActive;
+
+    /** Label showing the selected student's thread count. */
     private Label profileThreadsStarted;
+
+    /** Container displaying recent posts for the selected student. */
     private VBox recentPostsList;
 
-    // -------------------------------------------------------------------------
-
+    /**
+     * Constructs the Grader Dashboard page and initializes the user interface.
+     */
     public GraderDashboardPage() {
         controller = GraderDashboardController.getInstance();
         buildUI();
         loadData();
     }
 
-    // -------------------------------------------------------------------------
-    // UI Construction
-    // -------------------------------------------------------------------------
-
+    /**
+     * Builds the complete user interface layout for the dashboard.
+     *
+     * Description:
+     * Creates the root layout, header, left analytics panel, and center
+     * content panel, then assembles them into the main scene structure.
+     */
     private void buildUI() {
         root = new BorderPane();
         root.getStyleClass().add("dashboard-root");
 
         root.setTop(buildHeader());
 
-        // Main content: left panel + center panel side by side
         HBox mainContent = new HBox(16);
         mainContent.setPadding(new Insets(16));
         mainContent.getStyleClass().add("main-content");
@@ -93,7 +134,11 @@ public class GraderDashboardPage {
         root.setCenter(mainContent);
     }
 
-    /** Top header bar */
+    /**
+     * Builds the dashboard header bar.
+     *
+     * @return a configured header HBox
+     */
     private HBox buildHeader() {
         HBox header = new HBox();
         header.getStyleClass().add("dashboard-header");
@@ -112,7 +157,14 @@ public class GraderDashboardPage {
         return header;
     }
 
-    /** Left panel: stat cards + activity bar chart */
+    /**
+     * Builds the left-side analytics panel.
+     *
+     * Description:
+     * Creates summary statistic cards and the activity trend chart container.
+     *
+     * @return a configured VBox representing the left panel
+     */
     private VBox buildLeftPanel() {
         VBox panel = new VBox(16);
         panel.getStyleClass().add("left-panel");
@@ -122,20 +174,19 @@ public class GraderDashboardPage {
         Label statsLabel = new Label("OVERVIEW");
         statsLabel.getStyleClass().add("section-label");
 
-        // Stat cards
-        totalPostsValue    = new Label("—");
+        totalPostsValue = new Label("—");
         activeStudentsValue = new Label("—");
-        lowThreadsValue    = new Label("—");
+        lowThreadsValue = new Label("—");
 
         VBox cards = new VBox(10,
-            buildStatCard("Posts This Week",    totalPostsValue,     "#4A90D9"),
-            buildStatCard("Active Students",    activeStudentsValue, "#27AE60"),
-            buildStatCard("Low-Activity Threads", lowThreadsValue,  "#E67E22")
+            buildStatCard("Posts This Week", totalPostsValue, "#4A90D9"),
+            buildStatCard("Active Students", activeStudentsValue, "#27AE60"),
+            buildStatCard("Low-Activity Threads", lowThreadsValue, "#E67E22")
         );
 
-        // Activity trend chart
         Label chartLabel = new Label("ACTIVITY — LAST 14 DAYS");
         chartLabel.getStyleClass().add("section-label");
+
         chartPane = new Pane();
         chartPane.getStyleClass().add("chart-pane");
         chartPane.setPrefHeight(130);
@@ -144,6 +195,14 @@ public class GraderDashboardPage {
         return panel;
     }
 
+    /**
+     * Builds a summary statistic card.
+     *
+     * @param title the title displayed on the card
+     * @param valueLabel the label used to display the current value
+     * @param accentHex the accent color applied to the card
+     * @return a configured VBox representing a stat card
+     */
     private VBox buildStatCard(String title, Label valueLabel, String accentHex) {
         VBox card = new VBox(4);
         card.getStyleClass().add("stat-card");
@@ -159,7 +218,15 @@ public class GraderDashboardPage {
         return card;
     }
 
-    /** Center panel: low-participation threads + student roster */
+    /**
+     * Builds the center content panel.
+     *
+     * Description:
+     * Creates the low-participation threads section and the student roster
+     * section, then combines them into a single vertical panel.
+     *
+     * @return a configured VBox representing the center panel
+     */
     private VBox buildCenterPanel() {
         VBox panel = new VBox(20);
         panel.getStyleClass().add("center-panel");
@@ -171,8 +238,11 @@ public class GraderDashboardPage {
         return panel;
     }
 
-    // --- Low-participation threads ---
-
+    /**
+     * Builds the low-participation threads section.
+     *
+     * @return a configured VBox containing the threads table
+     */
     @SuppressWarnings("unchecked")
     private VBox buildThreadsSection() {
         VBox section = new VBox(8);
@@ -200,14 +270,20 @@ public class GraderDashboardPage {
         return section;
     }
 
-    // --- Student roster ---
-
+    /**
+     * Builds the student roster section.
+     *
+     * Description:
+     * Creates the roster header, search field, student summary table, and
+     * expandable student profile panel.
+     *
+     * @return a configured VBox containing roster components
+     */
     @SuppressWarnings("unchecked")
     private VBox buildStudentRosterSection() {
         VBox section = new VBox(8);
         VBox.setVgrow(section, Priority.ALWAYS);
 
-        // Header row with search
         HBox rosterHeader = new HBox(12);
         rosterHeader.setAlignment(Pos.CENTER_LEFT);
 
@@ -223,17 +299,16 @@ public class GraderDashboardPage {
 
         rosterHeader.getChildren().addAll(heading, searchField);
 
-        // Table
         studentTable = new TableView<>();
         studentTable.getStyleClass().add("data-table");
         studentTable.setPrefHeight(200);
         studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         studentTable.setPlaceholder(new Label("No students found."));
 
-        TableColumn<String[], String> nameCol     = arrayColumn("Name",        1);
-        TableColumn<String[], String> emailCol    = arrayColumn("Email",       2);
-        TableColumn<String[], String> postsCol    = arrayColumn("Posts",       3);
-        TableColumn<String[], String> lastActCol  = arrayColumn("Last Active", 4);
+        TableColumn<String[], String> nameCol = arrayColumn("Name", 1);
+        TableColumn<String[], String> emailCol = arrayColumn("Email", 2);
+        TableColumn<String[], String> postsCol = arrayColumn("Posts", 3);
+        TableColumn<String[], String> lastActCol = arrayColumn("Last Active", 4);
         postsCol.setMaxWidth(70);
 
         studentTable.getColumns().addAll(nameCol, emailCol, postsCol, lastActCol);
@@ -241,7 +316,6 @@ public class GraderDashboardPage {
             (obs, oldRow, newRow) -> { if (newRow != null) openStudentProfile(newRow[0]); }
         );
 
-        // Profile panel (hidden until a student is selected)
         profilePanel = buildProfilePanel();
         profilePanel.setVisible(false);
         profilePanel.setManaged(false);
@@ -250,7 +324,11 @@ public class GraderDashboardPage {
         return section;
     }
 
-    /** Expandable profile panel shown below the roster table */
+    /**
+     * Builds the expandable student profile panel.
+     *
+     * @return a configured VBox representing the profile panel
+     */
     private VBox buildProfilePanel() {
         VBox panel = new VBox(10);
         panel.getStyleClass().add("profile-panel");
@@ -268,9 +346,9 @@ public class GraderDashboardPage {
         HBox.setHgrow(profileName, Priority.ALWAYS);
         topRow.getChildren().addAll(profileName, closeBtn);
 
-        profileEmail          = new Label();
-        profilePosts          = new Label();
-        profileLastActive     = new Label();
+        profileEmail = new Label();
+        profilePosts = new Label();
+        profileLastActive = new Label();
         profileThreadsStarted = new Label();
 
         for (Label l : new Label[]{profileEmail, profilePosts, profileLastActive, profileThreadsStarted}) {
@@ -279,6 +357,7 @@ public class GraderDashboardPage {
 
         Label recentLabel = new Label("Recent Posts");
         recentLabel.getStyleClass().add("section-label");
+
         recentPostsList = new VBox(6);
         ScrollPane recentScroll = new ScrollPane(recentPostsList);
         recentScroll.setFitToWidth(true);
@@ -293,10 +372,9 @@ public class GraderDashboardPage {
         return panel;
     }
 
-    // -------------------------------------------------------------------------
-    // Data Loading
-    // -------------------------------------------------------------------------
-
+    /**
+     * Loads all dashboard data into the visible interface.
+     */
     private void loadData() {
         loadStatCards();
         loadActivityChart();
@@ -304,13 +382,22 @@ public class GraderDashboardPage {
         loadStudentTable(null);
     }
 
+    /**
+     * Loads summary statistic values into the overview cards.
+     */
     private void loadStatCards() {
         totalPostsValue.setText(String.valueOf(controller.getTotalPostsLastWeek()));
         activeStudentsValue.setText(String.valueOf(controller.getActiveStudentsLastWeek()));
         lowThreadsValue.setText(String.valueOf(controller.getLowParticipationThreads().size()));
     }
 
-    /** Draws a simple bar chart directly on a Pane using JavaFX rectangles */
+    /**
+     * Draws the activity trend chart using JavaFX rectangles.
+     *
+     * Description:
+     * Reads trend data from the controller and renders a simple bar chart inside
+     * the chart pane. Each bar includes a tooltip showing the date and post count.
+     */
     private void loadActivityChart() {
         Map<String, Integer> trends = controller.getActivityTrends();
         chartPane.getChildren().clear();
@@ -334,7 +421,6 @@ public class GraderDashboardPage {
             bar.setArcWidth(3);
             bar.setArcHeight(3);
 
-            // Tooltip with date + count
             Tooltip tip = new Tooltip(entry.getKey() + ": " + entry.getValue() + " posts");
             Tooltip.install(bar, tip);
 
@@ -343,11 +429,19 @@ public class GraderDashboardPage {
         }
     }
 
+    /**
+     * Loads low-participation thread data into the threads table.
+     */
     private void loadThreadsTable() {
         List<String[]> threads = controller.getLowParticipationThreads();
         threadsTable.getItems().setAll(threads);
     }
 
+    /**
+     * Loads student summary data into the roster table.
+     *
+     * @param query optional search text used to filter students
+     */
     private void loadStudentTable(String query) {
         List<String[]> students = (query == null || query.isBlank())
             ? controller.getAllStudentSummaries()
@@ -355,15 +449,21 @@ public class GraderDashboardPage {
         studentTable.getItems().setAll(students);
     }
 
-    // -------------------------------------------------------------------------
-    // Interactions
-    // -------------------------------------------------------------------------
-
+    /**
+     * Filters the student table based on a search query.
+     *
+     * @param query the current search text
+     */
     private void filterStudents(String query) {
         loadStudentTable(query);
         closeProfile();
     }
 
+    /**
+     * Opens and populates the student profile panel for the selected student.
+     *
+     * @param userId unique identifier of the selected student
+     */
     private void openStudentProfile(String userId) {
         String[] profile = controller.getStudentProfile(userId);
         if (profile == null) return;
@@ -374,7 +474,6 @@ public class GraderDashboardPage {
         profileLastActive.setText("⏱  Last active: " + profile[4]);
         profileThreadsStarted.setText("📌  Threads started: " + profile[5]);
 
-        // Recent posts
         recentPostsList.getChildren().clear();
         List<String[]> posts = controller.getStudentRecentPosts(userId);
         if (posts.isEmpty()) {
@@ -402,27 +501,33 @@ public class GraderDashboardPage {
         profilePanel.setManaged(true);
     }
 
+    /**
+     * Closes the student profile panel and clears the current table selection.
+     */
     private void closeProfile() {
         profilePanel.setVisible(false);
         profilePanel.setManaged(false);
         studentTable.getSelectionModel().clearSelection();
     }
 
+    /**
+     * Navigates back to the previous administrator page.
+     *
+     * Description:
+     * This implementation currently closes the current window. It should be
+     * replaced with the project's final back-navigation behavior if needed.
+     */
     private void goBack() {
-        // Navigate back to admin home — adjust to match your project's navigation pattern.
-        // Example if your admin home uses a singleton show() method:
-        // guiAdminHome.AdminHomePage.getInstance().show();
         Stage stage = (Stage) root.getScene().getWindow();
-        stage.close(); // Replace with your project's actual back-navigation call
+        stage.close();
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
     /**
-     * Creates a TableColumn that reads from a String[] by index.
-     * Used because TableView items are raw String arrays (no model class needed).
+     * Creates a table column that reads a value from a String array by index.
+     *
+     * @param header the displayed column header
+     * @param index the String[] index used for the column value
+     * @return a configured table column
      */
     private TableColumn<String[], String> arrayColumn(String header, int index) {
         TableColumn<String[], String> col = new TableColumn<>(header);
@@ -434,23 +539,26 @@ public class GraderDashboardPage {
         return col;
     }
 
+    /**
+     * Truncates a string to a maximum display length.
+     *
+     * @param s the input string
+     * @param max the maximum length allowed before truncation
+     * @return the original string if short enough, otherwise a truncated version
+     */
     private String truncate(String s, int max) {
         if (s == null) return "";
         return s.length() <= max ? s : s.substring(0, max) + "…";
     }
 
-    // -------------------------------------------------------------------------
-    // Public API — called by AdminHome to show the dashboard
-    // -------------------------------------------------------------------------
-
     /**
-     * Shows the Grader Dashboard in the provided Stage (or a new one).
-     * Call this from your AdminHome button handler.
+     * Displays the Grader Dashboard in the provided stage.
+     *
+     * @param stage the stage used to display the dashboard
      */
     public void show(Stage stage) {
         if (scene == null) {
             scene = new Scene(root, 1100, 720);
-            // Link to your project's existing CSS file
             scene.getStylesheets().add(
                 getClass().getResource("/applicationMain/application.css").toExternalForm()
             );
@@ -459,19 +567,25 @@ public class GraderDashboardPage {
         stage.setTitle("Grader Dashboard");
         stage.show();
 
-        // Refresh data each time the dashboard is opened
         loadData();
     }
 
     /**
-     * Convenience overload — opens the dashboard in a new Stage.
+     * Displays the Grader Dashboard in a newly created stage.
      */
     public void show() {
         show(new Stage());
     }
-    
+
+    /** Shared singleton-style view instance used by displayGraderDashboard. */
     private static GraderDashboardPage theView = null;
 
+    /**
+     * Displays the Grader Dashboard using the shared page instance.
+     *
+     * @param ps the stage used to display the dashboard
+     * @param user the currently logged-in user
+     */
     public static void displayGraderDashboard(Stage ps, entityClasses.User user) {
         if (theView == null) {
             theView = new GraderDashboardPage();

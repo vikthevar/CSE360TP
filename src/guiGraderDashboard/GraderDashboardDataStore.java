@@ -3,28 +3,67 @@ package guiGraderDashboard;
 import java.util.*;
 
 /**
- * <p> Title: GraderDashboardDataStore </p>
+ * Title: GraderDashboardDataStore
  *
- * <p> Description: Provides hardcoded sample data for the Grader Dashboard.
- * This version does not connect to a database. It is intended for MVP/demo
- * use so the GUI can be tested without any backend dependency. </p>
+ * Description:
+ * Provides sample data for the Grader Dashboard. This implementation does not
+ * connect to a database. Instead, it supplies hardcoded demonstration data so
+ * the dashboard can be executed, tested, and reviewed without requiring a
+ * backend dependency.
+ *
+ * Responsibilities:
+ * - Store activity trend data
+ * - Store low-participation thread data
+ * - Store student roster summary data
+ * - Store detailed student profile data
+ * - Store recent post history for individual students
+ *
+ * Design Notes:
+ * - Uses the Singleton pattern so one shared data store instance is reused
+ * - Intended for MVP and demonstration purposes
+ * - Can later be replaced by a database-backed implementation without changing
+ *   the controller/view contract
+ *
+ * Testing:
+ * - Validated through dashboard UI interaction
+ * - Verified through manual tests of trend display, low-participation thread
+ *   display, and student profile lookup
+ *
+ * @author Diego Armenta
  */
 public class GraderDashboardDataStore {
 
+    /** Singleton instance of the data store */
     private static GraderDashboardDataStore instance = null;
 
+    /** Activity trends keyed by date string with post count as value */
     private Map<String, Integer> activityTrends;
+
+    /** Low-participation thread data */
     private List<String[]> lowParticipationThreads;
+
+    /** Summary roster data for all students */
     private List<String[]> studentSummaries;
+
+    /** Detailed profile data keyed by student ID */
     private Map<String, String[]> studentProfiles;
+
+    /** Recent posts keyed by student ID */
     private Map<String, List<String[]>> studentRecentPosts;
 
-    /** Private constructor for Singleton pattern */
+    /**
+     * Private constructor used to enforce the Singleton pattern.
+     * Initializes all sample dashboard data.
+     */
     private GraderDashboardDataStore() {
         loadSampleData();
     }
 
-    /** Returns the single instance of this store */
+    /**
+     * Returns the single shared instance of the data store.
+     *
+     * @return the singleton GraderDashboardDataStore instance
+     */
     public static GraderDashboardDataStore getInstance() {
         if (instance == null) {
             instance = new GraderDashboardDataStore();
@@ -33,7 +72,12 @@ public class GraderDashboardDataStore {
     }
 
     /**
-     * Loads all hardcoded demo data.
+     * Loads all hardcoded sample data used by the dashboard.
+     *
+     * Description:
+     * Initializes in-memory collections for activity trends, low-participation
+     * threads, student summaries, detailed student profiles, and recent post
+     * history.
      */
     private void loadSampleData() {
         activityTrends = new LinkedHashMap<>();
@@ -87,8 +131,14 @@ public class GraderDashboardDataStore {
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the number of discussion posts per day for the last N days.
-     * Map key = date string, value = post count.
+     * Returns discussion activity trend data for the requested number of days.
+     *
+     * Data Format:
+     * - key = date string
+     * - value = number of posts on that date
+     *
+     * @param lastNDays the number of most recent days to include
+     * @return a map containing the requested activity trend subset
      */
     public Map<String, Integer> getActivityTrends(int lastNDays) {
         Map<String, Integer> result = new LinkedHashMap<>();
@@ -104,7 +154,9 @@ public class GraderDashboardDataStore {
     }
 
     /**
-     * Returns total posts in the last 7 days.
+     * Returns the total number of posts recorded in the stored activity data.
+     *
+     * @return total post count across the available activity trend period
      */
     public int getTotalPostsLastWeek() {
         int total = 0;
@@ -115,7 +167,9 @@ public class GraderDashboardDataStore {
     }
 
     /**
-     * Returns number of unique active students in the last 7 days.
+     * Returns the number of students with at least one recorded post.
+     *
+     * @return count of active students
      */
     public int getActiveStudentsLastWeek() {
         int activeCount = 0;
@@ -129,12 +183,20 @@ public class GraderDashboardDataStore {
     }
 
     // -------------------------------------------------------------------------
-    // Low-Participation Threads
+    // Low Participation Threads
     // -------------------------------------------------------------------------
 
     /**
-     * Returns threads with fewer than the given reply threshold.
-     * Each entry: [threadId, threadTitle, replyCount, createdAt]
+     * Returns threads whose reply count is below the given threshold.
+     *
+     * Returned Data Format:
+     * - threadId
+     * - threadTitle
+     * - replyCount
+     * - createdAt
+     *
+     * @param replyThreshold threshold below which a thread is considered low participation
+     * @return filtered list of low-participation threads
      */
     public List<String[]> getLowParticipationThreads(int replyThreshold) {
         List<String[]> result = new ArrayList<>();
@@ -152,8 +214,16 @@ public class GraderDashboardDataStore {
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a summary list of all students.
-     * Each entry: [userId, userName, email, totalPosts, lastActive]
+     * Returns summary roster data for all students.
+     *
+     * Returned Data Format:
+     * - userId
+     * - userName
+     * - email
+     * - totalPosts
+     * - lastActive
+     *
+     * @return a copy of the student summary list
      */
     public List<String[]> getAllStudentSummaries() {
         return new ArrayList<>(studentSummaries);
@@ -161,15 +231,34 @@ public class GraderDashboardDataStore {
 
     /**
      * Returns detailed profile data for a single student.
-     * Returns: [userId, userName, email, totalPosts, lastActive, threadsStarted]
+     *
+     * Returned Data Format:
+     * - userId
+     * - userName
+     * - email
+     * - totalPosts
+     * - lastActive
+     * - threadsStarted
+     *
+     * @param userId unique identifier of the student
+     * @return detailed profile array, or null if the student is not found
      */
     public String[] getStudentProfile(String userId) {
         return studentProfiles.get(userId);
     }
 
     /**
-     * Returns recent posts by a specific student.
-     * Each entry: [postId, threadTitle, postContent, createdAt]
+     * Returns recent posts for a specific student up to the requested limit.
+     *
+     * Returned Data Format:
+     * - postId
+     * - threadTitle
+     * - postContent
+     * - createdAt
+     *
+     * @param userId unique identifier of the student
+     * @param limit maximum number of posts to return
+     * @return a list of recent post entries for the student
      */
     public List<String[]> getStudentRecentPosts(String userId, int limit) {
         List<String[]> posts = studentRecentPosts.get(userId);
